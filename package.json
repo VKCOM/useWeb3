@@ -1,0 +1,10 @@
+{
+  "name": "crypto-wallet-link",
+  "version": "1.0.0",
+  "description": "A library that provides a hook for getting access to the crypto wallets",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^4.7.3"
+  }
+}
