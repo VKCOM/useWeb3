@@ -1,14 +1,20 @@
-import React from 'react';
-import logo from './logo.svg';
-import SayHello from "crypto-wallet-link";
+import React, {useEffect, useState} from 'react';
 import './App.css';
+import {useWallet} from "./lib";
 
 function App() {
-  return (
+    const wallet = useWallet()
+
+    useEffect(() => {
+
+    })
+
+    return (
     <div className="App">
-      <SayHello name={'asdf'} />
+        <h3>{wallet.status}</h3>
+        <h3>Accounts: {wallet.accounts?.join(', ')}</h3>
     </div>
-  );
+    );
 }
 
 export default App;

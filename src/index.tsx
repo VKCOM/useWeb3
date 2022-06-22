@@ -25,9 +25,9 @@ function useWallet() {
         initConnection();
     }, []);
 
-    return {
-        test: 'test',
-    };
+    return [
+        "isExist"
+    ]
 }
 
 export default useWallet;
