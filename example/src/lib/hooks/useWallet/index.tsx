@@ -9,8 +9,6 @@ function useWallet(): WalletHookData {
     const [signer, setSigner] = useState<JsonRpcSigner | undefined>(undefined);
     const [accounts, setAccounts] = useState<AccountsList | undefined>(undefined);
 
-    const [name, setName] = useState<string | null>(null);
-
     const initConnection = async () => {
         if(window.ethereum !== undefined) {
             const provider = new ethers.providers.Web3Provider(window.ethereum)
