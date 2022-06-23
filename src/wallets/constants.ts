@@ -1,5 +1,8 @@
+import _isMobile from 'ismobilejs'
+
 export enum WalletId {
     metamask,
+    phantom,
 }
 
 export const EthMethods = {
@@ -12,4 +15,8 @@ export function eth() {
 }
 export function isEth() {
     return !!eth()
+}
+
+export function isMobile() {
+    return _isMobile(window?.navigator).any
 }

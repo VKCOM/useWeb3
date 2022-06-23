@@ -22,7 +22,8 @@ function useMetamask(_provider: any) {
         // });
     }, [provider])
 
-    // maybe refactor {walletId, isAvailable} to status Object
+    // TODO support network change
+    // maybe refactor {walletId, isAvailable, network} to status Object
     return [
         walletId,
         isAvailable,
