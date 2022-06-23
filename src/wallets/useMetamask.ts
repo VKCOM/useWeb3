@@ -23,7 +23,7 @@ function useMetamask(_provider: any) {
     }, [provider])
 
     // maybe refactor {walletId, isAvailable} to status Object
-    return [walletId, isAvailable, connect(provider), sign, account]
+    return [walletId, isAvailable, connect(provider), sign(provider), account]
 }
 
 async function getAccount(provider: ethers.providers.Web3Provider) {
@@ -67,6 +67,15 @@ function isMetamaskAvailable() {
     return eth()?.isMetamask || false
 }
 
-function sign() {}
+function sign(provider: ethers.providers.Web3Provider | null) {
+    if (provider) {
+        const signer = provider.getSigner()
+        return function signMessage(message: string) {
+            signer.signMessage(message)
+        }
+    }
+
+    return null
+}
 
 export default useMetamask

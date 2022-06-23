@@ -21,8 +21,10 @@ test('should return wallet id', () => {
 })
 
 test('should be not available by defaut', () => {
-    const [, isAvailable] = render()
+    const [, isAvailable, connect, sign] = render()
     expect(isAvailable).toBeFalsy()
+    expect(connect).toBeNull()
+    expect(sign).toBeNull()
 })
 
 test('should return availability', () => {
@@ -50,11 +52,29 @@ it('should return null on connection fail', async () => {
     expect(accountId).toBeNull()
 })
 
+it('should sign message', () => {
+    const message = 'message'
+    const mockSignMessage = jest.fn(() => Promise.resolve(''))
+    const provider = initMetamask({
+        signMessage: mockSignMessage,
+    })
+    const [, , , sign] = render(provider)
+    act(() => {
+        sign(message)
+    })
+    expect(mockSignMessage).toBeCalledWith(message)
+})
+
 interface IinitMetamask {
     accountId?: string
     rejectSend?: boolean
+    signMessage?: (message: string) => Promise<string>
 }
-function initMetamask({ accountId, rejectSend }: IinitMetamask = {}) {
+function initMetamask({
+    accountId,
+    rejectSend,
+    signMessage,
+}: IinitMetamask = {}) {
     window.ethereum = { isMetamask: true }
 
     return mockProvider()
@@ -71,6 +91,12 @@ function initMetamask({ accountId, rejectSend }: IinitMetamask = {}) {
                         return [accountId]
                     default:
                         return null
+                }
+            },
+            getSigner: function mockGetSigner() {
+                const mockSignMessage = Promise.resolve('string')
+                return {
+                    signMessage: signMessage || mockSignMessage,
                 }
             },
         }
