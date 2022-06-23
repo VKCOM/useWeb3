@@ -23,7 +23,13 @@ function useMetamask(_provider: any) {
     }, [provider])
 
     // maybe refactor {walletId, isAvailable} to status Object
-    return [walletId, isAvailable, connect(provider), sign(provider), account]
+    return [
+        walletId,
+        isAvailable,
+        connect(provider, setAccount),
+        sign(provider),
+        account,
+    ]
 }
 
 async function getAccount(provider: ethers.providers.Web3Provider) {
@@ -38,7 +44,10 @@ async function getAccount(provider: ethers.providers.Web3Provider) {
     }
 }
 
-function connect(provider: ethers.providers.Web3Provider | null) {
+function connect(
+    provider: ethers.providers.Web3Provider | null,
+    setAccount?: React.Dispatch<React.SetStateAction<IAccount>>
+) {
     if (provider) {
         return async function requestAccounts(): Promise<IAccount> {
             try {
@@ -46,6 +55,8 @@ function connect(provider: ethers.providers.Web3Provider | null) {
                     EthMethods.authenticate,
                     []
                 )
+
+                if (setAccount) setAccount(accountId)
                 return accountId
             } catch (err) {
                 return null

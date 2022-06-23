@@ -38,7 +38,7 @@ it('should authenicate web3 wallet', async () => {
         accountId: expectedAccountId,
     })
     const [, , connect] = render(provider)
-    const accountId = await connect()
+    const accountId = await act(() => connect())
     expect(accountId).toBe(expectedAccountId)
 })
 
