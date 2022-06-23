@@ -1,0 +1,3 @@
+export enum WalletId {
+    metamask
+}
