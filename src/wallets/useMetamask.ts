@@ -1,10 +1,72 @@
-import { WalletId } from './constants'
+import { ethers } from 'ethers'
+import { useEffect, useState } from 'react'
+import { WalletId, isEth, eth, EthMethods } from './constants'
 
-function useMetamask() {
+type IAccount = string | undefined | null
+
+function useMetamask(_provider: any) {
     const walletId = WalletId.metamask
-    const isAvailable = window?.ethereum?.isMetamask || false
+    const isAvailable = isMetamaskAvailable()
+    const [account, setAccount] = useState<IAccount>()
+    const provider = _provider || getProvider()
 
-    return [walletId, isAvailable]
+    useEffect(() => {
+        if (provider) {
+            // request authenticated wallet
+            getAccount(provider).then((accountId) => setAccount(accountId))
+        }
+
+        // TODO support ethereum events
+        // window.ethereum.on('accountsChanged', async () => {
+        // Do something
+        // });
+    }, [provider])
+
+    // maybe refactor {walletId, isAvailable} to status Object
+    return [walletId, isAvailable, connect(provider), sign, account]
 }
+
+async function getAccount(provider: ethers.providers.Web3Provider) {
+    try {
+        const accounts: string[] = await provider.send(
+            EthMethods.getAuthenticated,
+            []
+        )
+        return accounts.shift()
+    } catch (err) {
+        return null
+    }
+}
+
+function connect(provider: ethers.providers.Web3Provider | null) {
+    if (provider) {
+        return async function requestAccounts(): Promise<IAccount> {
+            try {
+                const [accountId] = await provider.send(
+                    EthMethods.authenticate,
+                    []
+                )
+                return accountId
+            } catch (err) {
+                return null
+            }
+        }
+    }
+
+    return null
+}
+
+function getProvider() {
+    if (isEth()) {
+        return new ethers.providers.Web3Provider(eth())
+    }
+    return null
+}
+
+function isMetamaskAvailable() {
+    return eth()?.isMetamask || false
+}
+
+function sign() {}
 
 export default useMetamask
