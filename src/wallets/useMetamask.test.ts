@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks'
+import { renderHook, act } from '@testing-library/react'
 import useMetamask from './useMetamask'
 import { WalletId } from './constants'
 
