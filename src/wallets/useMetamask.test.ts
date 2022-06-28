@@ -11,7 +11,6 @@ function render(provider?: any) {
 }
 
 beforeEach(() => {
-    jest.resetModules()
     window.ethereum = undefined
 })
 
