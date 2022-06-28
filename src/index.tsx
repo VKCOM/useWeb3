@@ -1,2 +1,1 @@
-import useMetamask from './wallets/useMetamask'
-export default { useMetamask }
+export { default as useMetamask } from './wallets/useMetamask'
