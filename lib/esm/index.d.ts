@@ -1,4 +1,5 @@
-declare function useWallet(): {
-    test: string;
+import useMetamask from './wallets/useMetamask';
+declare const _default: {
+    useMetamask: typeof useMetamask;
 };
-export default useWallet;
+export default _default;
