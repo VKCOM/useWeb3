@@ -17,7 +17,7 @@ beforeEach(() => {
 
 test('should return wallet id', () => {
     const [walletId] = render()
-    expect(walletId).toBe(WalletId.metamask)
+    expect(walletId).toBe(WalletId.Metamask)
 })
 
 test('should be not available by defaut', () => {
@@ -38,7 +38,10 @@ it('should authenicate web3 wallet', async () => {
         accountId: expectedAccountId,
     })
     const [, , connect] = render(provider)
-    const accountId = await act(() => connect())
+    let accountId
+    await act(async () => {
+        if (connect) accountId = await connect()
+    })
     expect(accountId).toBe(expectedAccountId)
 })
 
@@ -48,7 +51,9 @@ it('should return null on connection fail', async () => {
     })
     const [, , connect] = render(provider)
     let accountId
-    await act(async () => (accountId = await connect()))
+    await act(async () => {
+        if (connect) accountId = await connect()
+    })
     expect(accountId).toBeNull()
 })
 
@@ -60,7 +65,7 @@ it('should sign message', () => {
     })
     const [, , , sign] = render(provider)
     act(() => {
-        sign(message)
+        if (sign) sign(message)
     })
     expect(mockSignMessage).toBeCalledWith(message)
 })
@@ -75,7 +80,7 @@ function initMetamask({
     rejectSend,
     signMessage,
 }: IinitMetamask = {}) {
-    window.ethereum = { isMetamask: true }
+    window.ethereum = { isMetaMask: true }
 
     return mockProvider()
 

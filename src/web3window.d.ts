@@ -1,3 +1,5 @@
 interface Window {
-    ethereum: any
+    ethereum?: {
+        isMetaMask?: boolean
+    }
 }

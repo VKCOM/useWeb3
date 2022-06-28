@@ -5,7 +5,7 @@ import { WalletId, isEth, eth, EthMethods } from './constants'
 type IAccount = string | undefined | null
 
 function useMetamask(_provider: any) {
-    const walletId = WalletId.metamask
+    const walletId = WalletId.Metamask
     const isAvailable = isMetamaskAvailable()
     const [account, setAccount] = useState<IAccount>()
     const provider = _provider || getProvider()
@@ -24,13 +24,28 @@ function useMetamask(_provider: any) {
 
     // TODO support network change
     // maybe refactor {walletId, isAvailable, network} to status Object
+    // [data, actions]
+    // data - {walletId, isAvailable, network, account}
+    // actions - {connect, sign}
+    // const data = {
+    //     walletId,
+    //     isAvailable,
+    //     account,
+    //     isAuthenticated: account !== null,
+    //   };
+    //   const actions = {
+    //     connect: connect(provider, setAccount),
+    //     sign: sign(provider),
+    //   };
+    //   return [data, actions];
+
     return [
         walletId,
         isAvailable,
         connect(provider, setAccount),
         sign(provider),
         account,
-    ]
+    ] as const
 }
 
 async function getAccount(provider: ethers.providers.Web3Provider) {
@@ -69,14 +84,15 @@ function connect(
 }
 
 function getProvider() {
-    if (isEth()) {
-        return new ethers.providers.Web3Provider(eth())
+    const _eth = eth()
+    if (isEth() && _eth) {
+        return new ethers.providers.Web3Provider(_eth)
     }
     return null
 }
 
 function isMetamaskAvailable() {
-    return eth()?.isMetamask || false
+    return eth()?.isMetaMask || false
 }
 
 function sign(provider: ethers.providers.Web3Provider | null) {
