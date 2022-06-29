@@ -3,10 +3,10 @@ import useWalletConnect from './useWalletConnect'
 import { WalletId, EthMethods } from './constants'
 import QRCodeModal from '@walletconnect/qrcode-modal'
 
-function render(provider?: any) {
+function render(setAcountMock?: any) {
     const {
         result: { current },
-    } = renderHook(() => useWalletConnect())
+    } = renderHook(() => useWalletConnect(setAcountMock))
 
     return current
 }
@@ -14,14 +14,15 @@ function render(provider?: any) {
 beforeEach(() => {
     jest.clearAllMocks()
     window['connected'] = undefined
+    window['error'] = undefined
 })
 
-test('should return wallet id', () => {
+test('return wallet id', () => {
     const [{ walletId }] = render()
     expect(walletId).toBe(WalletId.WalletConnect)
 })
 
-test('should be available', () => {
+test('be available', () => {
     const [{ isAvailable }] = render()
     expect(isAvailable).toBeTruthy()
 })
@@ -34,7 +35,7 @@ test('call QR modal on connect', () => {
     expect(QRCodeModal.open).toBeCalled()
 })
 
-test('should not call QR modal for already connected user', () => {
+test('not call QR modal for already connected user', () => {
     window['connected'] = true
     const [, { connect }] = render()
     act(() => {
@@ -43,18 +44,26 @@ test('should not call QR modal for already connected user', () => {
     expect(QRCodeModal.open).not.toBeCalled()
 })
 
-// it('should authenicate web3 wallet', async () => {
-//     const expectedAccountId = 'accountId'
-//     const provider = initMetamask({
-//         accountId: expectedAccountId,
-//     })
-//     const [, , connect] = render(provider)
-//     let accountId
-//     await act(async () => {
-//         if (connect) accountId = await connect()
-//     })
-//     expect(accountId).toBe(expectedAccountId)
-// })
+// TODO refactor
+it('authenicate web3 wallet', async () => {
+    const expectedAccountId = 'accountId'
+    window['accountId'] = expectedAccountId
+    const setAcountMock = jest.fn()
+    const [, { connect }] = render(setAcountMock)
+    let accountId
+    await act(async () => {
+        accountId = await connect()
+    })
+    expect(accountId).toBe(expectedAccountId)
+    expect(setAcountMock).toBeCalledWith(expectedAccountId)
+})
+
+it('fail on web3 auth properly', () => {
+    const error = 'errr'
+    window['error'] = error
+    const [, { connect }] = render()
+    expect(connect()).rejects.toEqual(error)
+})
 
 // it('should return null on connection fail', async () => {
 //     const provider = initMetamask({
@@ -80,41 +89,3 @@ test('should not call QR modal for already connected user', () => {
 //     })
 //     expect(mockSignMessage).toBeCalledWith(message)
 // })
-
-interface IinitMetamask {
-    accountId?: string
-    rejectSend?: boolean
-    signMessage?: (message: string) => Promise<string>
-}
-function initMetamask({
-    accountId,
-    rejectSend,
-    signMessage,
-}: IinitMetamask = {}) {
-    window.ethereum = { isMetaMask: true }
-
-    return mockProvider()
-
-    function mockProvider() {
-        return {
-            send: async function mockSend(method: string, params: any[]) {
-                if (rejectSend) throw new Error('ERRRORRORORORRORO')
-
-                switch (method) {
-                    case EthMethods.getAuthenticated:
-                        return []
-                    case EthMethods.authenticate:
-                        return [accountId]
-                    default:
-                        return null
-                }
-            },
-            getSigner: function mockGetSigner() {
-                const mockSignMessage = Promise.resolve('string')
-                return {
-                    signMessage: signMessage || mockSignMessage,
-                }
-            },
-        }
-    }
-}
