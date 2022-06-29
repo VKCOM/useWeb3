@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react'
 import useWalletConnect from './useWalletConnect'
 import { WalletId, EthMethods } from './constants'
+import QRCodeModal from '@walletconnect/qrcode-modal'
 
 function render(provider?: any) {
     const {
@@ -11,7 +12,8 @@ function render(provider?: any) {
 }
 
 beforeEach(() => {
-    // window.ethereum = undefined
+    jest.clearAllMocks()
+    window['connected'] = undefined
 })
 
 test('should return wallet id', () => {
@@ -19,17 +21,27 @@ test('should return wallet id', () => {
     expect(walletId).toBe(WalletId.WalletConnect)
 })
 
-// test('should be not available by defaut', () => {
-//     const [, isAvailable, connect, sign] = render()
-//     expect(isAvailable).toBeFalsy()
-//     expect(connect).toBeNull()
-//     expect(sign).toBeNull()
-// })
+test('should be available', () => {
+    const [{ isAvailable }] = render()
+    expect(isAvailable).toBeTruthy()
+})
 
-// test('should return availability', () => {
-//     const [, isAvailable] = render(initMetamask())
-//     expect(isAvailable).toBeTruthy()
-// })
+test('call QR modal on connect', () => {
+    const [, { connect }] = render()
+    act(() => {
+        connect()
+    })
+    expect(QRCodeModal.open).toBeCalled()
+})
+
+test('should not call QR modal for already connected user', () => {
+    window['connected'] = true
+    const [, { connect }] = render()
+    act(() => {
+        connect()
+    })
+    expect(QRCodeModal.open).not.toBeCalled()
+})
 
 // it('should authenicate web3 wallet', async () => {
 //     const expectedAccountId = 'accountId'
