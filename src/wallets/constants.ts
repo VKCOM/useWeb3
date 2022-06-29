@@ -3,6 +3,7 @@ import _isMobile from 'ismobilejs'
 export enum WalletId {
     Metamask,
     Phantom,
+    WalletConnect,
 }
 
 export const EthMethods = {

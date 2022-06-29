@@ -99,7 +99,7 @@ function sign(provider: ethers.providers.Web3Provider | null) {
     if (provider) {
         const signer = provider.getSigner()
         return function signMessage(message: string) {
-            signer.signMessage(message)
+            return signer.signMessage(message)
         }
     }
 
