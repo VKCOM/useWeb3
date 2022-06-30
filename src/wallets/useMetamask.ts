@@ -1,7 +1,7 @@
 import { ethers } from 'ethers'
 import { useEffect, useState } from 'react'
-import { isEth, eth, EthMethods } from './utils/ethHelpers'
-import {WalletId} from "./types";
+import { isEth, eth } from '../utils'
+import {EthMethods, WalletId} from "./types";
 
 type IAccount = string | undefined | null
 

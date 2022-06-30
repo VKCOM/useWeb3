@@ -1,7 +1,6 @@
 import { renderHook, act } from '@testing-library/react'
 import useMetamask from './useMetamask'
-import { EthMethods } from './utils/ethHelpers'
-import {WalletId} from "./types";
+import {EthMethods, WalletId} from "./types";
 
 function render(provider?: any) {
     const {

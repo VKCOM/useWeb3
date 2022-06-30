@@ -1,3 +1,8 @@
+export enum EthMethods {
+    getAuthenticated = 'eth_accounts',
+    authenticate = 'eth_requestAccounts',
+}
+
 export enum WalletId {
     Metamask,
     Phantom,
