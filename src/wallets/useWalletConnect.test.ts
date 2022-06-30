@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react'
 import useWalletConnect from './useWalletConnect'
-import { WalletId } from './constants'
 import QRCodeModal from '@walletconnect/qrcode-modal'
+import {WalletId} from "./types";
 
 function render({ setAcountMock: setAccountMock, signer, account }: any = {}) {
     const {

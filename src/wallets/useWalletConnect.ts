@@ -2,27 +2,13 @@ import { useState } from 'react'
 import WalletConnect from '@walletconnect/client'
 import QRCodeModal from '@walletconnect/qrcode-modal'
 
-import { WalletId } from './constants'
-
-type WalletData = {
-    walletId: WalletId
-    isAvailable: boolean
-    account: string | null
-    isAuthenticated: boolean
-}
-
-type WalletActions = {
-    connect: () => Promise<string>
-    sign: ((msg: string) => Promise<string>) | null
-}
-
-type WalletHook = [WalletData, WalletActions]
+import {SignMessage, WalletActions, WalletData, WalletHook, WalletId} from "./types";
+import {signerFallbackFunction} from "./utils";
 
 type Params = { accounts: string[]; chainId: string }
 type Payload = { params: Params[] }
 
-type MessageParams = string[]
-type SignMessage = (messageParams: MessageParams) => Promise<string>
+
 
 interface IMock {
     setAccount?: React.Dispatch<React.SetStateAction<string | null>>
@@ -37,7 +23,7 @@ function useWalletConnect({
     const [account, setAccount] = useState<string | null>(_account || null)
     // TODO replace with useState
     const setNetworkMock = (network: string) => {}
-    const [signer, setSigner] = useState<SignMessage | null>(null)
+    const [signer, setSigner] = useState<SignMessage>(() => signerFallbackFunction)
 
     const data: WalletData = {
         walletId: WalletId.WalletConnect,
@@ -53,13 +39,15 @@ function useWalletConnect({
     return [data, action]
 }
 
-function sign(account: string | null, signMessage: SignMessage | null) {
-    if (account && signMessage) {
-        return function handleSign(message: string) {
+function sign(account: string | null, signMessage: SignMessage) {
+    return function handleSign(message: string) {
+        if (account && signMessage) {
             return signMessage([account, message])
+        } else {
+            console.log('im here');
+            return signerFallbackFunction([])
         }
     }
-    return null
 }
 
 function connect(
