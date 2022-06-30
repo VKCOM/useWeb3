@@ -1,20 +1,25 @@
-import { useState } from 'react'
+import {useState} from 'react'
 import WalletConnect from '@walletconnect/client'
 import QRCodeModal from '@walletconnect/qrcode-modal'
 
-import {SignMessage, WalletActions, WalletData, WalletHook, WalletId} from "./types";
-import {signerFallbackFunction} from "./utils";
+import {WalletActions, WalletData, WalletHook, WalletId} from "./types";
 
 type Params = { accounts: string[]; chainId: string }
 type Payload = { params: Params[] }
 
-
+export type MessageParams = string[]
+export type SignMessage = (messageParams: MessageParams) => Promise<string>
 
 interface IMock {
     setAccount?: React.Dispatch<React.SetStateAction<string | null>>
     signer?: SignMessage
     account?: string
 }
+
+export const signerFallbackFunction: SignMessage = (msg) => {
+    throw Error('Signer is not available, please init a connection to wallet first.')
+}
+
 function useWalletConnect({
     setAccount: _setAccount,
     signer: _signer,
