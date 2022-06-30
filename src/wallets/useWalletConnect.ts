@@ -1,34 +1,25 @@
-import { useState } from 'react'
+import {useState} from 'react'
 import WalletConnect from '@walletconnect/client'
 import QRCodeModal from '@walletconnect/qrcode-modal'
 
-import { WalletId } from './constants'
-
-type WalletData = {
-    walletId: WalletId
-    isAvailable: boolean
-    account: string | null
-    isAuthenticated: boolean
-}
-
-type WalletActions = {
-    connect: () => Promise<string>
-    sign: ((msg: string) => Promise<string>) | null
-}
-
-type WalletHook = [WalletData, WalletActions]
+import {WalletActions, WalletData, WalletHook, WalletId} from "./types";
 
 type Params = { accounts: string[]; chainId: string }
 type Payload = { params: Params[] }
 
-type MessageParams = string[]
-type SignMessage = (messageParams: MessageParams) => Promise<string>
+export type MessageParams = string[]
+export type SignMessage = (messageParams: MessageParams) => Promise<string>
 
 interface IMock {
     setAccount?: React.Dispatch<React.SetStateAction<string | null>>
     signer?: SignMessage
     account?: string
 }
+
+export const signerFallbackFunction: SignMessage = (msg) => {
+    throw Error('Signer is not available, please init a connection to wallet first.')
+}
+
 function useWalletConnect({
     setAccount: _setAccount,
     signer: _signer,
@@ -37,7 +28,7 @@ function useWalletConnect({
     const [account, setAccount] = useState<string | null>(_account || null)
     // TODO replace with useState
     const setNetworkMock = (network: string) => {}
-    const [signer, setSigner] = useState<SignMessage | null>(null)
+    const [signer, setSigner] = useState<SignMessage>(signerFallbackFunction)
 
     const data: WalletData = {
         walletId: WalletId.WalletConnect,
@@ -53,13 +44,14 @@ function useWalletConnect({
     return [data, action]
 }
 
-function sign(account: string | null, signMessage: SignMessage | null) {
-    if (account && signMessage) {
-        return function handleSign(message: string) {
+function sign(account: string | null, signMessage: SignMessage) {
+    return function handleSign(message: string) {
+        if (account) {
             return signMessage([account, message])
+        } else {
+            return signerFallbackFunction([])
         }
     }
-    return null
 }
 
 function connect(
