@@ -1,19 +1,10 @@
 import {renderHook, act} from '@testing-library/react';
 
-import {WalletId} from './types';
+import {WalletId} from '../types';
+
 import usePhantom from './usePhantom';
 
 import SpyInstance = jest.SpyInstance;
-
-function setupWindow() {
-  const window = {};
-
-  Object.assign(window, {
-    phantom: {
-
-    },
-  });
-}
 
 function render() {
   const {
@@ -23,25 +14,64 @@ function render() {
   return current;
 }
 
+function setupWindow() {
+  const phantom = {};
+
+  Object.assign(phantom, {
+    connect: jest.fn(
+      function connect() {
+        // @ts-ignore
+        return this;
+      }.bind(phantom),
+    ),
+  });
+  return {phantom};
+}
+
 let windowSpy: SpyInstance;
 beforeEach(() => {
-  windowSpy = jest.spyOn(window, 'window', 'get');
+  windowSpy = jest.spyOn(global, 'window', 'get');
 });
 
 afterEach(() => {
   windowSpy.mockRestore();
 });
 
-test('should return wallet id', () => {
-  const [walletId] = render();
-  expect(walletId).toBe(WalletId.Metamask);
+function applyMockToWindow(mocked: any) {
+  const originalWindow = {...global};
+  windowSpy.mockImplementation(() => ({
+    ...originalWindow, // In case you need other window properties to be in place
+    ...mocked,
+  }));
+}
+
+test('should return a proper wallet id', () => {
+  const [{walletId}] = render();
+  expect(walletId).toBe(WalletId.Phantom);
 });
 
+test('should signalize that provider is not available', () => {
+  const [{isAvailable}] = render();
+  expect(isAvailable).toBeFalsy();
+});
+
+test('should signalize that provider is available', () => {
+  const mock = setupWindow();
+  applyMockToWindow(mock);
+  const [{isAvailable}] = render();
+  expect(isAvailable).toBeFalsy();
+});
+/*
 test('should be not available by defaut', () => {
-  const [, isAvailable, connect, sign] = render();
+  const [{isAvailable}] = render();
   expect(isAvailable).toBeFalsy();
   expect(connect).toBeNull();
   expect(sign).toBeNull();
+});
+
+test('should return wallet id', () => {
+  const [walletId] = render();
+  expect(walletId).toBe(WalletId.Metamask);
 });
 
 test('should return availability', () => {
@@ -119,4 +149,4 @@ function initMetamask({accountId, rejectSend, signMessage}: IinitMetamask = {}) 
       },
     };
   }
-}
+}*/

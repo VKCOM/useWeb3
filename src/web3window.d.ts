@@ -1,5 +1,6 @@
 interface Window {
-    ethereum?: {
-        isMetaMask?: boolean
-    }
+  ethereum?: {
+    isMetaMask?: boolean;
+  };
+  phantom?: unknown;
 }
