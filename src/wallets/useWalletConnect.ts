@@ -28,7 +28,7 @@ function useWalletConnect({
     const [account, setAccount] = useState<string | null>(_account || null)
     // TODO replace with useState
     const setNetworkMock = (network: string) => {}
-    const [signer, setSigner] = useState<SignMessage>(() => signerFallbackFunction)
+    const [signer, setSigner] = useState<SignMessage>(signerFallbackFunction)
 
     const data: WalletData = {
         walletId: WalletId.WalletConnect,
@@ -46,10 +46,9 @@ function useWalletConnect({
 
 function sign(account: string | null, signMessage: SignMessage) {
     return function handleSign(message: string) {
-        if (account && signMessage) {
+        if (account) {
             return signMessage([account, message])
         } else {
-            console.log('im here');
             return signerFallbackFunction([])
         }
     }
