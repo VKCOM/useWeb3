@@ -1,12 +1,14 @@
 import { renderHook, act } from '@testing-library/react'
 import useWalletConnect from './useWalletConnect'
-import { WalletId, EthMethods } from './constants'
+import { WalletId } from './constants'
 import QRCodeModal from '@walletconnect/qrcode-modal'
 
-function render(setAcountMock?: any) {
+function render({ setAcountMock: setAccountMock, signer, account }: any = {}) {
     const {
         result: { current },
-    } = renderHook(() => useWalletConnect(setAcountMock))
+    } = renderHook(() =>
+        useWalletConnect({ setAccount: setAccountMock, signer, account })
+    )
 
     return current
 }
@@ -49,7 +51,7 @@ it('authenicate web3 wallet', async () => {
     const expectedAccountId = 'accountId'
     window['accountId'] = expectedAccountId
     const setAcountMock = jest.fn()
-    const [, { connect }] = render(setAcountMock)
+    const [, { connect }] = render({ setAcountMock })
     let accountId
     await act(async () => {
         accountId = await connect()
@@ -62,30 +64,18 @@ it('fail on web3 auth properly', () => {
     const error = 'errr'
     window['error'] = error
     const [, { connect }] = render()
-    expect(connect()).rejects.toEqual(error)
+    act(() => {
+        expect(connect()).rejects.toEqual(error)
+    })
 })
 
-// it('should return null on connection fail', async () => {
-//     const provider = initMetamask({
-//         rejectSend: true,
-//     })
-//     const [, , connect] = render(provider)
-//     let accountId
-//     await act(async () => {
-//         if (connect) accountId = await connect()
-//     })
-//     expect(accountId).toBeNull()
-// })
-
-// it('should sign message', () => {
-//     const message = 'message'
-//     const mockSignMessage = jest.fn(() => Promise.resolve(''))
-//     const provider = initMetamask({
-//         signMessage: mockSignMessage,
-//     })
-//     const [, , , sign] = render(provider)
-//     act(() => {
-//         if (sign) sign(message)
-//     })
-//     expect(mockSignMessage).toBeCalledWith(message)
-// })
+it('should sign message', () => {
+    const mockSignMessage = jest.fn()
+    const message = 'message'
+    const account = 'accountId'
+    const [, { sign }] = render({ signer: mockSignMessage, account })
+    act(() => {
+        if (sign) sign(message)
+    })
+    expect(mockSignMessage).toBeCalledWith([account, message])
+})

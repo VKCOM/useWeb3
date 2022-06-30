@@ -12,6 +12,7 @@ type SubscribeCallback = (error: Error | null, payload: Payload) => void
 
 function WalletConnect({ qrcodeModal }: IWalletConnect) {
     return {
+        signMessage: window['signMessage'] || jest.fn(),
         createSession: () => qrcodeModal.open(),
         connected: window['connected'],
         on: function subscribe(event: string, callback: SubscribeCallback) {
