@@ -1,4 +1,4 @@
-function usePhantom() {}
+import { WalletHook } from './types';
 
 // isAvailable
 // https://docs.phantom.app/integrating/extension-and-in-app-browser-web-apps/detecting-the-provider
@@ -6,4 +6,8 @@ function usePhantom() {}
 // TODO connect with deeplinks
 // https://docs.phantom.app/integrating/deeplinks-ios-and-android
 
-export default usePhantom
+function usePhantom(): WalletHook {
+  return [{}, {}];
+}
+
+export default usePhantom;
