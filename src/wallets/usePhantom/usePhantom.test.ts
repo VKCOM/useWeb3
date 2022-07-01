@@ -1,152 +1,145 @@
-import {renderHook, act} from '@testing-library/react';
+import {PublicKey} from '@solana/web3.js';
+import {renderHook} from '@testing-library/react';
+import {act} from '@testing-library/react-hooks';
 
+import strings from '../strings';
 import {WalletId} from '../types';
 
+import {ConnectOpts, DisplayEncoding, PhantomProvider} from './types';
 import usePhantom from './usePhantom';
-
-import SpyInstance = jest.SpyInstance;
+import * as utils from './utils';
 
 function render() {
   const {
     result: {current},
+    result,
+    rerender,
   } = renderHook(() => usePhantom());
 
-  return current;
+  return {cur: current, result, rerender};
 }
 
-function setupWindow() {
-  const phantom = {};
+function setupSolana(isConnected = false, _publicKey: string | null = null) {
+  const publicKey: PublicKey | null =
+    _publicKey === null
+      ? null
+      : ({
+        toString(): string {
+            return _publicKey;
+        },
+      } as PublicKey);
 
-  Object.assign(phantom, {
-    connect: jest.fn(
-      function connect() {
-        // @ts-ignore
-        return this;
-      }.bind(phantom),
-    ),
-  });
-  return {phantom};
+  const solana: Partial<PhantomProvider> = {
+    connect: jest.fn((opts: Partial<ConnectOpts> | undefined): Promise<{publicKey: PublicKey}> => {
+      // @ts-ignore
+      return Promise.resolve({publicKey: publicKey});
+    }),
+    disconnect(): Promise<void> {
+      return Promise.resolve(undefined);
+    },
+    isConnected: isConnected,
+    publicKey: publicKey,
+    signMessage(message: Uint8Array | string, display: DisplayEncoding | undefined): Promise<any> {
+      return Promise.resolve(undefined);
+    },
+  };
+  return solana;
 }
 
-let windowSpy: SpyInstance;
 beforeEach(() => {
-  windowSpy = jest.spyOn(global, 'window', 'get');
+  jest.spyOn(utils, 'getProvider');
 });
+
+function mockSolana(mock: any) {
+  // @ts-ignore
+  utils.getProvider.mockImplementation(() => mock);
+}
 
 afterEach(() => {
-  windowSpy.mockRestore();
+  jest.restoreAllMocks();
 });
 
-function applyMockToWindow(mocked: any) {
-  const originalWindow = {...global};
-  windowSpy.mockImplementation(() => ({
-    ...originalWindow, // In case you need other window properties to be in place
-    ...mocked,
-  }));
-}
-
 test('should return a proper wallet id', () => {
-  const [{walletId}] = render();
+  const [{walletId}] = render().cur;
   expect(walletId).toBe(WalletId.Phantom);
 });
 
-test('should signalize that provider is not available', () => {
-  const [{isAvailable}] = render();
-  expect(isAvailable).toBeFalsy();
+test('should reflect that phantom is available', () => {
+  mockSolana(setupSolana());
+  const [{isAvailable}] = render().cur;
+  expect(isAvailable).toBe(true);
 });
 
-test('should signalize that provider is available', () => {
-  const mock = setupWindow();
-  applyMockToWindow(mock);
-  const [{isAvailable}] = render();
-  expect(isAvailable).toBeFalsy();
-});
-/*
-test('should be not available by defaut', () => {
-  const [{isAvailable}] = render();
-  expect(isAvailable).toBeFalsy();
-  expect(connect).toBeNull();
-  expect(sign).toBeNull();
+test('should reflect that phantom is not available', () => {
+  const [{isAvailable, account, isAuthenticated}] = render().cur;
+  expect(isAvailable).toBe(false);
+  expect(account).toBeNull();
+  expect(isAuthenticated).toBe(false);
 });
 
-test('should return wallet id', () => {
-  const [walletId] = render();
-  expect(walletId).toBe(WalletId.Metamask);
-});
+test('should connect and save wallet', async () => {
+  const expectedPublicKey = 'expectedPublicKey';
+  const solanaMock = setupSolana(true, expectedPublicKey);
+  mockSolana(solanaMock);
+  const {result} = render();
+  const [, {connect}] = result.current;
 
-test('should return availability', () => {
-  const [, isAvailable] = render(initMetamask());
-  expect(isAvailable).toBeTruthy();
-});
-
-it('should authenicate web3 wallet', async () => {
-  const expectedAccountId = 'accountId';
-  const provider = initMetamask({
-    accountId: expectedAccountId,
-  });
-  const [, , connect] = render(provider);
-  let accountId;
+  let connectResp;
   await act(async () => {
-    if (connect) accountId = await connect();
+    connectResp = await connect();
   });
-  expect(accountId).toBe(expectedAccountId);
+
+  expect(solanaMock.connect).toBeCalledTimes(1);
+  expect(connectResp).toBe(expectedPublicKey);
+  const [{account, isAuthenticated}] = result.current;
+  expect(account).toBe(expectedPublicKey);
+  expect(isAuthenticated).toBe(true);
 });
 
-it('should return null on connection fail', async () => {
-  const provider = initMetamask({
-    rejectSend: true,
-  });
-  const [, , connect] = render(provider);
-  let accountId;
+test('should return null on connection fail', async () => {
+  const expectedPublicKey = null;
+  const solanaMock = setupSolana(true, expectedPublicKey);
+  mockSolana(solanaMock);
+  const {result} = render();
+  const [, {connect}] = result.current;
+
+  let connectResp;
   await act(async () => {
-    if (connect) accountId = await connect();
+    connectResp = await connect();
   });
-  expect(accountId).toBeNull();
+  expect(solanaMock.connect).toBeCalledTimes(1);
+  expect(connectResp).toBe(expectedPublicKey);
+  const [{account, isAuthenticated}] = result.current;
+  expect(account).toBe(expectedPublicKey);
+  expect(isAuthenticated).toBe(false);
 });
 
-it('should sign message', () => {
-  const message = 'message';
-  const mockSignMessage = jest.fn(() => Promise.resolve(''));
-  const provider = initMetamask({
-    signMessage: mockSignMessage,
-  });
-  const [, , , sign] = render(provider);
-  act(() => {
-    if (sign) sign(message);
-  });
-  expect(mockSignMessage).toBeCalledWith(message);
+test('should throw if trying to connect when not available', async () => {
+  const [, {connect}] = render().cur;
+  await expect(connect()).rejects.toThrow(
+    strings.EXC_MSG_TRYING_TO_CONNECT_WHEN_PROVIDER_NOT_AVAILABLE,
+  );
 });
 
-interface IinitMetamask {
-  accountId?: string;
-  rejectSend?: boolean;
-  signMessage?: (message: string) => Promise<string>;
-}
-function initMetamask({accountId, rejectSend, signMessage}: IinitMetamask = {}) {
-  window.ethereum = {isMetaMask: true};
+test('should throw if trying to sign when not available', async () => {
+  const [, {sign}] = render().cur;
+  await expect(sign('')).rejects.toThrow(
+    strings.EXC_MSG_TRYING_TO_SIGN_WHEN_PROVIDER_NOT_AVAILABLE,
+  );
+});
 
-  return mockProvider();
+test('should sign a message', async () => {
+  const solanaMock = setupSolana(true);
+  const expectedSignedMsg = 'asdfasdf';
+  solanaMock.signMessage = jest.fn(() => Promise.resolve(expectedSignedMsg));
+  mockSolana(solanaMock);
+  const {result} = render();
+  const [, {sign}] = result.current;
 
-  function mockProvider() {
-    return {
-      send: async function mockSend(method: string, params: any[]) {
-        if (rejectSend) throw new Error('ERRRORRORORORRORO');
-
-        switch (method) {
-          case EthMethods.getAuthenticated:
-            return [];
-          case EthMethods.authenticate:
-            return [accountId];
-          default:
-            return null;
-        }
-      },
-      getSigner: function mockGetSigner() {
-        const mockSignMessage = Promise.resolve('string');
-        return {
-          signMessage: signMessage || mockSignMessage,
-        };
-      },
-    };
-  }
-}*/
+  let signedMessage;
+  await act(async () => {
+    signedMessage = await sign('Test message');
+  });
+  expect(signedMessage).toBe(expectedSignedMsg);
+  expect(solanaMock.signMessage).toBeCalledTimes(1);
+});
