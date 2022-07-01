@@ -7,9 +7,6 @@ import {WalletActions, WalletData, WalletHook, WalletId} from '../types';
 import {PhantomProvider} from './types';
 import {getProvider} from './utils';
 
-// isAvailable
-// https://docs.phantom.app/integrating/extension-and-in-app-browser-web-apps/detecting-the-provider
-
 // TODO connect with deeplinks
 // https://docs.phantom.app/integrating/deeplinks-ios-and-android
 
@@ -33,7 +30,6 @@ function usePhantom(): WalletHook {
   };
 
   const actions: WalletActions = {
-    // @ts-ignore TODO
     connect: async () => {
       if (provider === undefined) {
         throw new Error(strings.EXC_MSG_TRYING_TO_CONNECT_WHEN_PROVIDER_NOT_AVAILABLE);
@@ -44,7 +40,6 @@ function usePhantom(): WalletHook {
       setIsAuthenticated(account !== null);
       return account;
     },
-    // @ts-ignore TODO
     sign: async (msg) => {
       if (provider === undefined) {
         throw new Error(strings.EXC_MSG_TRYING_TO_SIGN_WHEN_PROVIDER_NOT_AVAILABLE);

@@ -17,7 +17,7 @@ export type WalletData = {
 };
 
 export type WalletActions = {
-  connect: () => Promise<string>;
+  connect: () => Promise<string | null>;
   sign: (msg: string) => Promise<string>;
 };
 export type WalletHook = [WalletData, WalletActions];
