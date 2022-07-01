@@ -1,9 +1,7 @@
 import { ethers } from 'ethers'
 import { useEffect, useState } from 'react'
-import {EthMethods, WalletId} from "./types";
+import {EthMethods, WalletActions, WalletData, WalletId, IAccount} from "./types";
 import {eth, isEth} from "./constants";
-
-type IAccount = string | undefined | null
 
 function useMetamask(_provider: any) {
     const walletId = WalletId.Metamask
@@ -24,28 +22,20 @@ function useMetamask(_provider: any) {
     }, [provider])
 
     // TODO support network change
-    // maybe refactor {walletId, isAvailable, network} to status Object
-    // [data, actions]
-    // data - {walletId, isAvailable, network, account}
-    // actions - {connect, sign}
-    // const data = {
-    //     walletId,
-    //     isAvailable,
-    //     account,
-    //     isAuthenticated: account !== null,
-    //   };
-    //   const actions = {
-    //     connect: connect(provider, setAccount),
-    //     sign: sign(provider),
-    //   };
-    //   return [data, actions];
-
-    return [
+    const data: WalletData = {
         walletId,
         isAvailable,
-        connect(provider, setAccount),
-        sign(provider),
         account,
+        isAuthenticated: account !== null,
+      };
+      const actions: WalletActions = {
+        connect: connect(provider, setAccount),
+        sign: sign(provider),
+      };
+
+    return [
+        data,
+        actions
     ] as const
 }
 
