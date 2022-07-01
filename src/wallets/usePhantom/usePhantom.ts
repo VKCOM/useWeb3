@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 
 import 'fast-text-encoding';
 import strings from '../strings';
-import {WalletActions, WalletData, WalletHook, WalletId} from '../types';
+import {PureWalletActions, PureWalletHook, WalletActions, WalletData, WalletId} from '../types';
 
 import {PhantomProvider} from './types';
 import {getProvider} from './utils';
@@ -10,7 +10,7 @@ import {getProvider} from './utils';
 // TODO connect with deeplinks
 // https://docs.phantom.app/integrating/deeplinks-ios-and-android
 
-function usePhantom(): WalletHook {
+function usePhantom(): PureWalletHook {
   const [provider, setProvider] = useState<PhantomProvider | undefined>(undefined);
   const [account, setAccount] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -29,7 +29,7 @@ function usePhantom(): WalletHook {
     isAuthenticated,
   };
 
-  const actions: WalletActions = {
+  const actions: PureWalletActions = {
     connect: async () => {
       if (provider === undefined) {
         throw new Error(strings.EXC_MSG_TRYING_TO_CONNECT_WHEN_PROVIDER_NOT_AVAILABLE);
