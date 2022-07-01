@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 
 import 'fast-text-encoding';
 import strings from '../strings';
-import {PureWalletActions, PureWalletHook, WalletActions, WalletData, WalletId} from '../types';
+import {PureWalletActions, PureWalletHook, WalletData, WalletId} from '../types';
 
 import {PhantomProvider} from './types';
 import {getProvider} from './utils';
@@ -13,11 +13,9 @@ import {getProvider} from './utils';
 function usePhantom(): PureWalletHook {
   const [provider, setProvider] = useState<PhantomProvider | undefined>(undefined);
   const [account, setAccount] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
-    const _provider = getProvider();
-    setProvider(_provider);
+    setProvider(getProvider());
   }, []);
 
   const isAvailable = provider !== undefined;
@@ -26,29 +24,32 @@ function usePhantom(): PureWalletHook {
     walletId: WalletId.Phantom,
     isAvailable,
     account,
-    isAuthenticated,
+    isAuthenticated: account !== null,
+  };
+
+  const connect = async () => {
+    if (provider === undefined) {
+      throw new Error(strings.EXC_MSG_TRYING_TO_CONNECT_WHEN_PROVIDER_NOT_AVAILABLE);
+    }
+    const connectionResp = await provider.connect();
+    const account = connectionResp.publicKey?.toString() || null;
+    setAccount(account);
+    return account;
+  };
+
+  const sign = async (msg: string) => {
+    if (provider === undefined) {
+      throw new Error(strings.EXC_MSG_TRYING_TO_SIGN_WHEN_PROVIDER_NOT_AVAILABLE);
+    }
+    const encodedMessage = new TextEncoder().encode(msg);
+    const signedMessage = await provider.signMessage(encodedMessage, 'utf8');
+    // TODO: maybe signature formatting is required
+    return signedMessage;
   };
 
   const actions: PureWalletActions = {
-    connect: async () => {
-      if (provider === undefined) {
-        throw new Error(strings.EXC_MSG_TRYING_TO_CONNECT_WHEN_PROVIDER_NOT_AVAILABLE);
-      }
-      const connectionResp = await provider.connect();
-      const account = connectionResp.publicKey?.toString() || null;
-      setAccount(account);
-      setIsAuthenticated(account !== null);
-      return account;
-    },
-    sign: async (msg) => {
-      if (provider === undefined) {
-        throw new Error(strings.EXC_MSG_TRYING_TO_SIGN_WHEN_PROVIDER_NOT_AVAILABLE);
-      }
-      const encodedMessage = new TextEncoder().encode(msg);
-      const signedMessage = await provider.signMessage(encodedMessage, 'utf8');
-      // TODO: maybe signature formatting is required
-      return signedMessage;
-    },
+    connect,
+    sign,
   };
 
   return [data, actions];
