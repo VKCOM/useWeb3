@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react'
 import useMetamask from './useMetamask'
-import {EthMethods, WalletId} from "./types";
+import { EthMethods, WalletId } from './types'
 
 function render(provider?: any) {
     const {
@@ -15,19 +15,19 @@ beforeEach(() => {
 })
 
 test('should return wallet id', () => {
-    const [{walletId}] = render()
+    const [{ walletId }] = render()
     expect(walletId).toBe(WalletId.Metamask)
 })
 
 test('should be not available by defaut', () => {
-    const [{isAvailable}, {connect, sign}] = render()
+    const [{ isAvailable }, { connect, sign }] = render()
     expect(isAvailable).toBeFalsy()
     expect(connect).toBeNull()
     expect(sign).toBeNull()
 })
 
 test('should return availability', () => {
-    const [{isAvailable}] = render(initMetamask())
+    const [{ isAvailable }] = render(initMetamask())
     expect(isAvailable).toBeTruthy()
 })
 
@@ -36,7 +36,7 @@ it('should authenicate web3 wallet', async () => {
     const provider = initMetamask({
         accountId: expectedAccountId,
     })
-    const [,{connect}] = render(provider)
+    const [, { connect }] = render(provider)
     let accountId
     await act(async () => {
         if (connect) accountId = await connect()
@@ -48,7 +48,7 @@ it('should return null on connection fail', async () => {
     const provider = initMetamask({
         rejectSend: true,
     })
-    const [,{connect}] = render(provider)
+    const [, { connect }] = render(provider)
     let accountId
     await act(async () => {
         if (connect) accountId = await connect()
@@ -62,7 +62,7 @@ it('should sign message', () => {
     const provider = initMetamask({
         signMessage: mockSignMessage,
     })
-    const [,{sign}] = render(provider)
+    const [, { sign }] = render(provider)
     act(() => {
         if (sign) sign(message)
     })

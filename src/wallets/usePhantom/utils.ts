@@ -1,5 +1,5 @@
-import {PhantomProvider} from './types';
+import { PhantomProvider } from './types'
 
 export const getProvider = (): PhantomProvider | undefined => {
-  return window.solana;
-};
+    return window.solana
+}
