@@ -9,7 +9,7 @@ import {
 } from './types'
 import { eth, isEth } from './constants'
 
-function useMetamask(_provider: any) {
+function useMetamask(_provider?: any) {
     const walletId = WalletId.Metamask
     const isAvailable = isMetamaskAvailable()
     const [account, setAccount] = useState<IAccount>()

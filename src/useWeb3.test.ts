@@ -28,4 +28,10 @@ test('returns web3 wallets data', () => {
     const {
         result: { current },
     } = renderHook(useWeb3)
+
+    const [hooksData] = current
+    const walletIds = hooksData.map(([data]) => data.walletId)
+    expect(walletIds).toContain(WalletId.Metamask)
+    expect(walletIds).toContain(WalletId.Phantom)
+    expect(walletIds).toContain(WalletId.WalletConnect)
 })

@@ -1,4 +1,4 @@
-export type IAccount = string | null
+export type IAccount = string | null | undefined
 
 export enum EthMethods {
     getAuthenticated = 'eth_accounts',
@@ -29,3 +29,4 @@ export type PureWalletActions = {
 
 export type WalletHook = [WalletData, WalletActions]
 export type PureWalletHook = [WalletData, PureWalletActions] // TODO: Leave one of them
+export type HookData = WalletHook | PureWalletHook // TODO refactor and remove
