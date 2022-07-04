@@ -24,9 +24,9 @@ test('return wallet id', () => {
     expect(walletId).toBe(WalletId.WalletConnect)
 })
 
-test('be available', () => {
+test('be not available', () => {
     const [{ isAvailable }] = render()
-    expect(isAvailable).toBeTruthy()
+    expect(isAvailable).toBeFalsy()
 })
 
 test('call QR modal on connect', () => {

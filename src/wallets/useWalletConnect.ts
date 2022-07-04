@@ -35,7 +35,7 @@ function useWalletConnect({
 
     const data: WalletData = {
         walletId: WalletId.WalletConnect,
-        isAvailable: true,
+        isAvailable: false,
         account,
         isAuthenticated: false,
     }
