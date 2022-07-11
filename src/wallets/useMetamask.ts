@@ -1,9 +1,15 @@
 import { ethers } from 'ethers'
 import { useEffect, useState } from 'react'
-import {EthMethods, WalletActions, WalletData, WalletId, IAccount} from "./types";
-import {eth, isEth} from "./constants";
+import {
+    EthMethods,
+    WalletActions,
+    WalletData,
+    WalletId,
+    IAccount,
+} from './types'
+import { eth, isEth } from './constants'
 
-function useMetamask(_provider: any) {
+function useMetamask(_provider?: any) {
     const walletId = WalletId.Metamask
     const isAvailable = isMetamaskAvailable()
     const [account, setAccount] = useState<IAccount>()
@@ -27,16 +33,13 @@ function useMetamask(_provider: any) {
         isAvailable,
         account,
         isAuthenticated: account !== null,
-      };
-      const actions: WalletActions = {
+    }
+    const actions: WalletActions = {
         connect: connect(provider, setAccount),
         sign: sign(provider),
-      };
+    }
 
-    return [
-        data,
-        actions
-    ] as const
+    return [data, actions] as const
 }
 
 async function getAccount(provider: ethers.providers.Web3Provider) {

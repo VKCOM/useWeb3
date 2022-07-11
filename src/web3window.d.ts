@@ -1,6 +1,6 @@
 interface Window {
-  ethereum?: {
-    isMetaMask?: boolean;
-  };
-  solana?: any;
+    ethereum?: {
+        isMetaMask?: boolean
+    }
+    solana?: any
 }

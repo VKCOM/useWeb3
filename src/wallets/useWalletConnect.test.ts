@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react'
 import useWalletConnect from './useWalletConnect'
 import QRCodeModal from '@walletconnect/qrcode-modal'
-import {WalletId} from "./types";
+import { WalletId } from './types'
 
 function render({ setAcountMock: setAccountMock, signer, account }: any = {}) {
     const {
@@ -24,15 +24,15 @@ test('return wallet id', () => {
     expect(walletId).toBe(WalletId.WalletConnect)
 })
 
-test('be available', () => {
+test('be not available', () => {
     const [{ isAvailable }] = render()
-    expect(isAvailable).toBeTruthy()
+    expect(isAvailable).toBeFalsy()
 })
 
 test('call QR modal on connect', () => {
     const [, { connect }] = render()
     act(() => {
-        connect()
+        connect && connect()
     })
     expect(QRCodeModal.open).toBeCalled()
 })
@@ -41,7 +41,7 @@ test('not call QR modal for already connected user', () => {
     window['connected'] = true
     const [, { connect }] = render()
     act(() => {
-        connect()
+        connect && connect()
     })
     expect(QRCodeModal.open).not.toBeCalled()
 })
@@ -54,7 +54,9 @@ it('authenicate web3 wallet', async () => {
     const [, { connect }] = render({ setAcountMock })
     let accountId
     await act(async () => {
-        accountId = await connect()
+        if (connect) {
+            accountId = await connect()
+        }
     })
     expect(accountId).toBe(expectedAccountId)
     expect(setAcountMock).toBeCalledWith(expectedAccountId)
@@ -65,7 +67,9 @@ it('fail on web3 auth properly', () => {
     window['error'] = error
     const [, { connect }] = render()
     act(() => {
-        expect(connect()).rejects.toEqual(error)
+        if (connect) {
+            expect(connect()).rejects.toEqual(error)
+        }
     })
 })
 
