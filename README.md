@@ -9,7 +9,7 @@ Set of hooks to work with web3 wallets
 -   Near
 -   Ton
 
-### TODO:
+### TODO
 
 -   useWeb3 getAuthenticated action
 -   deeplinks for mobile
@@ -19,7 +19,14 @@ Set of hooks to work with web3 wallets
     })
 -   support network/account change
 -   support context (or redux/etc.)
+-   add the _chain ID_ of the network the current wallet is connected to
+-   add metadata about the network the current wallet is connected to and switching networks
 -   minimal size for npm package
 -   example
 -   magick and gnosis wallets?
 -   binance smart chain wallet?
+
+#### BACKLOG
+
+- get balance
+- get networks with balance
