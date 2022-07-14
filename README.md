@@ -11,12 +11,7 @@ Set of hooks to work with web3 wallets
 
 ### TODO
 
--   useWeb3 getAuthenticated action
 -   deeplinks for mobile
--   useWeb3 byWalletId action
-    const wallet = web3data.find(function byWalletId([data]) {
-    return data.walletId === walletId
-    })
 -   support network/account change
 -   support context (or redux/etc.)
 -   add the _chain ID_ of the network the current wallet is connected to
@@ -28,5 +23,5 @@ Set of hooks to work with web3 wallets
 
 #### BACKLOG
 
-- get balance
-- get networks with balance
+-   get balance
+-   get networks with balance

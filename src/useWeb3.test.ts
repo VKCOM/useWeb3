@@ -1,4 +1,9 @@
-import { default as useWeb3, sortByAvailable } from './useWeb3'
+import {
+    default as useWeb3,
+    sortByAvailable,
+    byWalletId,
+    getAuthenticated,
+} from './useWeb3'
 import { renderHook } from '@testing-library/react'
 import { HookData, WalletId } from './wallets/types'
 
@@ -34,4 +39,25 @@ test('returns web3 wallets data', () => {
     expect(walletIds).toContain(WalletId.Metamask)
     expect(walletIds).toContain(WalletId.Phantom)
     expect(walletIds).toContain(WalletId.WalletConnect)
+})
+
+test('return wallet by walletId', () => {
+    const phantomWallet = { walletId: WalletId.Phantom }
+    const wallets: any = [[{ walletId: WalletId.Metamask }], [phantomWallet]]
+    expect(byWalletId(wallets, WalletId.Phantom)).toStrictEqual([phantomWallet])
+})
+
+test('returns authenticated wallets', () => {
+    const phantomWallet = { walletId: WalletId.Phantom, account: null }
+    const metamaskWallet = { walletId: WalletId.Metamask, account: 1 }
+    const walletConnectWallet = { walletId: WalletId.WalletConnect, account: 2 }
+    const wallets: any = [
+        [metamaskWallet],
+        [phantomWallet],
+        [walletConnectWallet],
+    ]
+    expect(getAuthenticated(wallets)).toStrictEqual([
+        [metamaskWallet],
+        [walletConnectWallet],
+    ])
 })
