@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import 'fast-text-encoding'
-import strings from '../strings'
+import { strings } from '../constants'
 import {
     PureWalletActions,
     PureWalletHook,

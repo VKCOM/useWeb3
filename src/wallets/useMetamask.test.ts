@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react'
-import useMetamask from './useMetamask'
+import useMetamask, { generateLink } from './useMetamask'
 import { EthMethods, WalletId } from './types'
+import { getHost, isMobile } from './constants'
 
 function render(provider?: any) {
     const {
@@ -10,8 +11,11 @@ function render(provider?: any) {
     return current
 }
 
+let uaGetter: jest.SpyInstance<string, []>
 beforeEach(() => {
     window.ethereum = undefined
+    uaGetter = jest.spyOn(window.navigator, 'userAgent', 'get')
+    uaGetter.mockReturnValue('desktop')
 })
 
 test('should return wallet id', () => {
@@ -31,7 +35,7 @@ test('should return availability', () => {
     expect(isAvailable).toBeTruthy()
 })
 
-it('should authenicate web3 wallet', async () => {
+async function testAuth() {
     const expectedAccountId = 'accountId'
     const provider = initMetamask({
         accountId: expectedAccountId,
@@ -42,9 +46,13 @@ it('should authenicate web3 wallet', async () => {
         if (connect) accountId = await connect()
     })
     expect(accountId).toBe(expectedAccountId)
+}
+
+test('should authenicate web3 wallet', async () => {
+    await testAuth()
 })
 
-it('should return null on connection fail', async () => {
+test('should return null on connection fail', async () => {
     const provider = initMetamask({
         rejectSend: true,
     })
@@ -56,7 +64,7 @@ it('should return null on connection fail', async () => {
     expect(accountId).toBeNull()
 })
 
-it('should sign message', () => {
+test('should sign message', () => {
     const message = 'message'
     const mockSignMessage = jest.fn(() => Promise.resolve(''))
     const provider = initMetamask({
@@ -67,6 +75,23 @@ it('should sign message', () => {
         if (sign) sign(message)
     })
     expect(mockSignMessage).toBeCalledWith(message)
+})
+
+fit('mobile device web2 browser on connect open deeplink', async () => {
+    uaGetter.mockReturnValue('iPhone')
+    window.open = jest.fn()
+    const host = getHost()
+    const expectedLink = generateLink(host)
+    const [, { connect }] = render()
+    act(() => {
+        if (connect) connect()
+    })
+    expect(window.open).toBeCalledWith(expectedLink, '_blank')
+})
+
+fit('connect on mobile device web3 browser', async () => {
+    uaGetter.mockReturnValue('iPhone')
+    await testAuth()
 })
 
 interface IinitMetamask {

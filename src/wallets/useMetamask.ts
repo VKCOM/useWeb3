@@ -7,7 +7,7 @@ import {
     WalletId,
     IAccount,
 } from './types'
-import { eth, isEth } from './constants'
+import { eth, getHost, isEth, isMobile } from './constants'
 
 function useMetamask(_provider?: any) {
     const walletId = WalletId.Metamask
@@ -72,6 +72,8 @@ function connect(
                 return null
             }
         }
+    } else if (isMobile()) {
+        window.open(generateLink(getHost()), '_blank')
     }
 
     return null
@@ -98,6 +100,10 @@ function sign(provider: ethers.providers.Web3Provider | null) {
     }
 
     return null
+}
+
+export function generateLink(url: string) {
+    return 'https://metamask.app.link/dapp/' + url
 }
 
 export default useMetamask

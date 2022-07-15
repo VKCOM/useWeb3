@@ -2,11 +2,11 @@ import { PublicKey } from '@solana/web3.js'
 import { renderHook } from '@testing-library/react'
 import { act } from '@testing-library/react-hooks'
 
-import strings from '../strings'
+import { strings } from '../constants'
 import { WalletId } from '../types'
 
 import { ConnectOpts, DisplayEncoding, PhantomProvider } from './types'
-import usePhantom from './usePhantom'
+import usePhantom from './index'
 import * as utils from './utils'
 
 function render() {
