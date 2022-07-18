@@ -25,3 +25,4 @@ Set of hooks to work with web3 wallets
 
 -   get balance
 -   get networks with balance
+
