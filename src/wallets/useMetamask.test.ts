@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react'
 import useMetamask, { generateLink } from './useMetamask'
-import { EthMethods, WalletId } from './types'
+import { EthEvents, EthMethods, WalletId } from './types'
 import { getHost, isMobile } from './constants'
 
 function render(provider?: any) {
@@ -77,7 +77,7 @@ test('should sign message', () => {
     expect(mockSignMessage).toBeCalledWith(message)
 })
 
-fit('mobile device web2 browser on connect open deeplink', async () => {
+test('mobile device web2 browser on connect open deeplink', async () => {
     uaGetter.mockReturnValue('iPhone')
     window.open = jest.fn()
     const host = getHost()
@@ -89,9 +89,50 @@ fit('mobile device web2 browser on connect open deeplink', async () => {
     expect(window.open).toBeCalledWith(expectedLink, '_blank')
 })
 
-fit('connect on mobile device web3 browser', async () => {
+test('connect on mobile device web3 browser', async () => {
     uaGetter.mockReturnValue('iPhone')
     await testAuth()
+})
+
+// ethereum.on('chainChanged', (chainId) => {
+// Handle the new chain.
+// Correctly handling chain changes can be complicated.
+// We recommend reloading the page unless you have good reason not to.
+//   window.location.reload();
+// });
+//  provider.on("network", (newNetwork, oldNetwork) => {
+// When a Provider makes its initial connection, it emits a "network"
+// event with a null oldNetwork along with the newNetwork. So, if the
+// oldNetwork exists, it represents a changing network
+// if (oldNetwork) {
+// window.location.reload();
+// }
+// });
+
+test('handle network change', () => {
+    const expectedChainId = 'newChain'
+    const provider = initMetamask()
+    const { result } = renderHook(() => useMetamask(provider))
+    expect(result.current[0].chainId).toBeNull()
+    act(() => {
+        provider.setChainId(expectedChainId)
+    })
+    expect(result.current[0].chainId).toBe(expectedChainId)
+})
+
+// ethereum.on('accountsChanged', function (accounts) {
+// Time to reload your interface with accounts[0]!
+// });
+// Once you've connected to a user, you can always re-check the current account by checking ethereum.selectedAddress
+test('update account on account changed event', () => {})
+
+test('initMetamask pub/sub', () => {
+    const chainId = 'id'
+    const provider = initMetamask()
+    const handler = jest.fn()
+    provider.on(EthEvents.networkChange, handler)
+    provider.setChainId(chainId)
+    expect(handler).toBeCalledWith(chainId)
 })
 
 interface IinitMetamask {
@@ -104,12 +145,27 @@ function initMetamask({
     rejectSend,
     signMessage,
 }: IinitMetamask = {}) {
+    const events = {}
     window.ethereum = { isMetaMask: true }
 
     return mockProvider()
 
     function mockProvider() {
         return {
+            on: function handleEvent(eventName: string, callback: any) {
+                if (!events[eventName]) {
+                    events[eventName] = new Array()
+                }
+                events[eventName].push(callback)
+            },
+            setChainId: function updateChain(chainId: string) {
+                const onNetworkChange = events[EthEvents.networkChange]
+                if (onNetworkChange) {
+                    onNetworkChange.forEach(function trigger(handler: any) {
+                        handler(chainId)
+                    })
+                }
+            },
             send: async function mockSend(method: string, params: any[]) {
                 if (rejectSend) throw new Error('ERRRORRORORORRORO')
 

@@ -1,8 +1,14 @@
 export type IAccount = string | null | undefined
 
+export type ChainId = string | null
+
 export enum EthMethods {
     getAuthenticated = 'eth_accounts',
     authenticate = 'eth_requestAccounts',
+}
+
+export enum EthEvents {
+    networkChange = 'network',
 }
 
 export enum WalletId {
@@ -16,6 +22,7 @@ export type WalletData = {
     isAvailable: boolean
     account: IAccount
     isAuthenticated: boolean
+    chainId: ChainId
 }
 
 export type WalletActions = {

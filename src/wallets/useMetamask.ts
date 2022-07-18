@@ -2,10 +2,12 @@ import { ethers } from 'ethers'
 import { useEffect, useState } from 'react'
 import {
     EthMethods,
+    EthEvents,
     WalletActions,
     WalletData,
     WalletId,
     IAccount,
+    ChainId,
 } from './types'
 import { eth, getHost, isEth, isMobile } from './constants'
 
@@ -13,12 +15,14 @@ function useMetamask(_provider?: any) {
     const walletId = WalletId.Metamask
     const isAvailable = isMetamaskAvailable()
     const [account, setAccount] = useState<IAccount>()
+    const [chainId, setChainId] = useState<ChainId>(null)
     const provider = _provider || getProvider()
 
     useEffect(() => {
         if (provider) {
             // request authenticated wallet
             getAccount(provider).then((accountId) => setAccount(accountId))
+            provider.on(EthEvents.networkChange, setChainId)
         }
 
         // TODO support ethereum events
@@ -32,6 +36,7 @@ function useMetamask(_provider?: any) {
         walletId,
         isAvailable,
         account,
+        chainId,
         isAuthenticated: account !== null,
     }
     const actions: WalletActions = {

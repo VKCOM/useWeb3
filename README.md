@@ -15,8 +15,8 @@ Set of hooks to work with web3 wallets
 
 ### TODO
 
--   deeplinks for mobile
 -   support network/account change
+-   deeplinks for mobile (phantom)
 -   support context (or redux/etc.)
 -   add the _chain ID_ of the network the current wallet is connected to
 -   add metadata about the network the current wallet is connected to and switching networks
@@ -29,3 +29,5 @@ Set of hooks to work with web3 wallets
 
 -   get balance
 -   get networks with balance
+-   ethereum.\_metamask.isUnlocked()
+    This method returns a Promise that resolves to a boolean indicating if MetaMask is unlocked by the user. MetaMask must be unlocked in order to perform any operation involving user accounts. Note that this method does not indicate if the user has exposed any accounts to the caller.
