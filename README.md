@@ -9,6 +9,10 @@ Set of hooks to work with web3 wallets
 -   Near
 -   Ton
 
+Кошелёк Рекомендасьон:
+(десктоп) - метамаск - валлетконнект - фантом
+(мобайл) - валлентконнект - фантом - метамаск
+
 ### TODO
 
 -   deeplinks for mobile
@@ -25,4 +29,3 @@ Set of hooks to work with web3 wallets
 
 -   get balance
 -   get networks with balance
-
