@@ -124,7 +124,7 @@ test('handle network change', () => {
 // Time to reload your interface with accounts[0]!
 // });
 // Once you've connected to a user, you can always re-check the current account by checking ethereum.selectedAddress
-test('update account on account changed event', () => {})
+// test('update account on account changed event', () => {})
 
 test('initMetamask pub/sub', () => {
     const chainId = 'id'

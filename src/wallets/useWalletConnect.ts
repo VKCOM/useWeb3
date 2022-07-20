@@ -38,6 +38,7 @@ function useWalletConnect({
         isAvailable: false,
         account,
         isAuthenticated: false,
+        chainId: null, // TODO
     }
     const action: WalletActions = {
         connect: connect(_setAccount || setAccount, setNetworkMock, setSigner),

@@ -15,6 +15,7 @@ Set of hooks to work with web3 wallets
 
 ### TODO
 
+-   move test to **tests** folder
 -   support network/account change
 -   deeplinks for mobile (phantom)
 -   support context (or redux/etc.)
@@ -31,3 +32,13 @@ Set of hooks to work with web3 wallets
 -   get networks with balance
 -   ethereum.\_metamask.isUnlocked()
     This method returns a Promise that resolves to a boolean indicating if MetaMask is unlocked by the user. MetaMask must be unlocked in order to perform any operation involving user accounts. Note that this method does not indicate if the user has exposed any accounts to the caller.
+-   Phantom Account change
+    https://docs.phantom.app/integrating/extension-and-in-app-browser-web-apps/establishing-a-connection#changing-accounts
+
+#### Phantom mobile
+
+web deeplink
+
+https://phantom.app/ul/v1/connect?dapp_encryption_public_key=9KZNkyGGHSbna3G9YZ4mrZaaZHp9a8zLtEoKfiK5pd4k&app_url=https%3A%2F%2Fya.ru&cluster=mainnet-beta&redirect_link=https%3A%2F%2Fya.ru
+
+https://ya.ru/?data=xt8yYzMu5DGPFinbmoJV7vtxGor7PjLR3YJTErNNYzQVkSGVRt3koxMVKfFbxrDkdqEFT15Mb9acj3XgtvbardKtgF8JmT48RmZJvGaYoc1fBS7ofGtqvrjQnP65VdPVXVFEiv8sY4JLjrtXHHThAMdk4KoatMTdhAgaYdWUvJhNMaQ7MsrfvpqmUmcnzsUt3d6pWpDR58A8DnBP11YG4czP4ErmZ7mwBxenxuntjf3QeFLvP998UZKEKtBKhDgZ1qQur4ZLZvJY5Q1KjCUGBAwHwfwLV7MCjYTDi9S3GkPpXVDwzmaL3GrhKkJYdFjgNt3Dw7Dm6P6eVVDXF6X6HidzfYe6nC2LVhH3yfzrg8ncd4pqABNdBhh5qscM4JUc1mXPTENWsQM53BzXFdfipySKbGHQKobcCPX&nonce=MXcgZwhLU8poV2fKuGYj32KNyWPoTExRW&phantom_encryption_public_key=CnKjBpJggoACfwpScPXsb4kBLM3mjVenkyX2S2sC953U
