@@ -27,3 +27,5 @@ export interface PhantomProvider {
     on: (event: PhantomEvent, handler: (args: any) => void) => void
     request: (method: PhantomRequestMethod, params: any) => Promise<unknown>
 }
+
+export type PhantomCluster = 'mainnet-beta' | 'testne' | 'devnet'

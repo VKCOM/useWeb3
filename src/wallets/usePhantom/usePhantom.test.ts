@@ -19,48 +19,9 @@ function render() {
     return { cur: current, result, rerender }
 }
 
-function setupSolana(isConnected = false, _publicKey: string | null = null) {
-    const publicKey: PublicKey | null =
-        _publicKey === null
-            ? null
-            : ({
-                  toString(): string {
-                      return _publicKey
-                  },
-              } as PublicKey)
-
-    const solana: Partial<PhantomProvider> = {
-        connect: jest.fn(
-            (
-                opts: Partial<ConnectOpts> | undefined
-            ): Promise<{ publicKey: PublicKey }> => {
-                // @ts-ignore
-                return Promise.resolve({ publicKey: publicKey })
-            }
-        ),
-        disconnect(): Promise<void> {
-            return Promise.resolve(undefined)
-        },
-        isConnected: isConnected,
-        publicKey: publicKey,
-        signMessage(
-            message: Uint8Array | string,
-            display: DisplayEncoding | undefined
-        ): Promise<any> {
-            return Promise.resolve(undefined)
-        },
-    }
-    return solana
-}
-
 beforeEach(() => {
     jest.spyOn(utils, 'getProvider')
 })
-
-function mockSolana(mock: any) {
-    // @ts-ignore
-    utils.getProvider.mockImplementation(() => mock)
-}
 
 afterEach(() => {
     jest.restoreAllMocks()
@@ -150,3 +111,42 @@ test('should sign a message', async () => {
     expect(signedMessage).toBe(expectedSignedMsg)
     expect(solanaMock.signMessage).toBeCalledTimes(1)
 })
+
+function mockSolana(mock: any) {
+    // @ts-ignore
+    utils.getProvider.mockImplementation(() => mock)
+}
+
+function setupSolana(isConnected = false, _publicKey: string | null = null) {
+    const publicKey: PublicKey | null =
+        _publicKey === null
+            ? null
+            : ({
+                  toString(): string {
+                      return _publicKey
+                  },
+              } as PublicKey)
+
+    const solana: Partial<PhantomProvider> = {
+        connect: jest.fn(
+            (
+                opts: Partial<ConnectOpts> | undefined
+            ): Promise<{ publicKey: PublicKey }> => {
+                // @ts-ignore
+                return Promise.resolve({ publicKey: publicKey })
+            }
+        ),
+        disconnect(): Promise<void> {
+            return Promise.resolve(undefined)
+        },
+        isConnected: isConnected,
+        publicKey: publicKey,
+        signMessage(
+            message: Uint8Array | string,
+            display: DisplayEncoding | undefined
+        ): Promise<any> {
+            return Promise.resolve(undefined)
+        },
+    }
+    return solana
+}

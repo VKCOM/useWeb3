@@ -9,11 +9,16 @@ import {
     WalletId,
 } from '../types'
 
-import { PhantomProvider } from './types'
+import { PhantomCluster, PhantomProvider } from './types'
 import { getProvider } from './utils'
 
 // TODO connect with deeplinks
+
 // https://docs.phantom.app/integrating/deeplinks-ios-and-android
+// https://phantom.app/ul/v1/connect?app_url=https%3A%2F%2Fvk.com&redirect_link=https%3A%2F%2Fya.ru&dapp_encryption_public_key=HyKsaJuGq3LBPkbNA2Pe2mb113YwRehrXMWJC1fH3can
+
+// WORKING!
+// https://phantom.app/ul/browse/https%3A%2F%2Fmagiceden.io%2Fitem-details%2FED8Psf2Zk2HyVGAimSQpFHVDFRGDAkPjQhkfAqbN5h7d?ref=https%3A%2F%2Fmagiceden.io
 
 function usePhantom(): PureWalletHook {
     const [provider, setProvider] = useState<PhantomProvider | undefined>(
@@ -31,19 +36,8 @@ function usePhantom(): PureWalletHook {
         walletId: WalletId.Phantom,
         isAvailable,
         account,
+        chainId: null,
         isAuthenticated: account !== null,
-    }
-
-    const connect = async () => {
-        if (provider === undefined) {
-            throw new Error(
-                strings.EXC_MSG_TRYING_TO_CONNECT_WHEN_PROVIDER_NOT_AVAILABLE
-            )
-        }
-        const connectionResp = await provider.connect()
-        const account = connectionResp.publicKey?.toString() || null
-        setAccount(account)
-        return account
     }
 
     const sign = async (msg: string) => {
@@ -59,11 +53,34 @@ function usePhantom(): PureWalletHook {
     }
 
     const actions: PureWalletActions = {
-        connect,
+        connect: connect(provider, setAccount),
         sign,
     }
 
     return [data, actions]
+}
+
+interface Params {
+    app_url: string
+    redirect_link: string
+    cluster?: PhantomCluster
+}
+
+function connect(
+    provider: PhantomProvider | undefined,
+    set: React.Dispatch<React.SetStateAction<string | null>>
+) {
+    return async function handleConnect(params?: Params) {
+        if (provider === undefined) {
+            throw new Error(
+                strings.EXC_MSG_TRYING_TO_CONNECT_WHEN_PROVIDER_NOT_AVAILABLE
+            )
+        }
+        const connectionResp = await provider.connect()
+        const account = connectionResp.publicKey?.toString() || null
+        set(account)
+        return account
+    }
 }
 
 export default usePhantom
