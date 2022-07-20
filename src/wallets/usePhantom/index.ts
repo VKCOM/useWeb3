@@ -10,7 +10,6 @@ import {
 } from '../types'
 
 import { PhantomCluster, PhantomProvider } from './types'
-import { getProvider } from './utils'
 
 // TODO connect with deeplinks
 
@@ -20,14 +19,16 @@ import { getProvider } from './utils'
 // WORKING!
 // https://phantom.app/ul/browse/https%3A%2F%2Fmagiceden.io%2Fitem-details%2FED8Psf2Zk2HyVGAimSQpFHVDFRGDAkPjQhkfAqbN5h7d?ref=https%3A%2F%2Fmagiceden.io
 
-function usePhantom(): PureWalletHook {
+function usePhantom(_provider?: PhantomProvider): PureWalletHook {
     const [provider, setProvider] = useState<PhantomProvider | undefined>(
-        undefined
+        _provider
     )
     const [account, setAccount] = useState<string | null>(null)
 
     useEffect(() => {
-        setProvider(getProvider())
+        if (!provider) {
+            setProvider(getProvider())
+        }
     }, [])
 
     const isAvailable = provider !== undefined
@@ -41,7 +42,7 @@ function usePhantom(): PureWalletHook {
     }
 
     const actions: PureWalletActions = {
-        connect: connect(provider, setAccount),
+        connect: connect(false, provider, setAccount),
         sign: sign(provider),
     }
 
@@ -55,11 +56,16 @@ interface Params {
 }
 
 function connect(
+    isMobile: boolean,
     provider: PhantomProvider | undefined,
     set: React.Dispatch<React.SetStateAction<string | null>>
 ) {
+    if (isMobile && !provider) {
+        // return
+    }
+
     return async function handleConnect(params?: Params) {
-        if (provider === undefined) {
+        if (!provider) {
             throw new Error(
                 strings.EXC_MSG_TRYING_TO_CONNECT_WHEN_PROVIDER_NOT_AVAILABLE
             )
@@ -83,6 +89,21 @@ function sign(provider: PhantomProvider | undefined) {
         // TODO: maybe signature formatting is required
         return signedMessage
     }
+}
+
+export function getDappEncryptionPublicKey() {
+    return 'key'
+}
+
+export function generateLink(public_key: string, host: string) {
+    // const params = new URLSearchParams({
+    //     dapp_encryption_public_key:
+    // })
+    // return `https://phantom.app/ul/v1/connect?=9KZNkyGGHSbna3G9YZ4mrZaaZHp9a8zLtEoKfiK5pd4k&app_url=https%3A%2F%2Fya.ru&cluster=mainnet-beta&redirect_link=https%3A%2F%2Fya.ru`
+}
+
+export const getProvider = (): PhantomProvider | undefined => {
+    return window.solana
 }
 
 export default usePhantom

@@ -2,75 +2,52 @@ import { PublicKey } from '@solana/web3.js'
 import { renderHook } from '@testing-library/react'
 import { act } from '@testing-library/react-hooks'
 
-import { strings } from '../constants'
+import { getHost, strings } from '../constants'
 import { WalletId } from '../types'
 
 import { ConnectOpts, DisplayEncoding, PhantomProvider } from './types'
-import usePhantom from './index'
-import * as utils from './utils'
+import usePhantom, { generateLink, getDappEncryptionPublicKey } from './index'
 
-function render() {
+function render(provider?: PhantomProvider) {
     const {
         result: { current },
-        result,
-        rerender,
-    } = renderHook(() => usePhantom())
+    } = renderHook(() => usePhantom(provider))
 
-    return { cur: current, result, rerender }
+    return current
 }
 
+let uaGetter: jest.SpyInstance<string, []>
 beforeEach(() => {
-    jest.spyOn(utils, 'getProvider')
-})
-
-afterEach(() => {
-    jest.restoreAllMocks()
+    uaGetter = jest.spyOn(window.navigator, 'userAgent', 'get')
+    uaGetter.mockReturnValue('desktop')
 })
 
 test('should return a proper wallet id', () => {
-    const [{ walletId }] = render().cur
+    const [{ walletId }] = render()
     expect(walletId).toBe(WalletId.Phantom)
 })
 
 test('should reflect that phantom is available', () => {
-    mockSolana(setupSolana())
-    const [{ isAvailable }] = render().cur
+    const [{ isAvailable }] = render(setupSolana())
     expect(isAvailable).toBe(true)
 })
 
 test('should reflect that phantom is not available', () => {
-    const [{ isAvailable, account, isAuthenticated }] = render().cur
+    const [{ isAvailable, account, isAuthenticated }] = render()
     expect(isAvailable).toBe(false)
     expect(account).toBeNull()
     expect(isAuthenticated).toBe(false)
 })
 
 test('should connect and save wallet', async () => {
-    const expectedPublicKey = 'expectedPublicKey'
-    const solanaMock = setupSolana(true, expectedPublicKey)
-    mockSolana(solanaMock)
-    const { result } = render()
-    const [, { connect }] = result.current
-
-    let connectResp
-    await act(async () => {
-        connectResp = await connect()
-    })
-
-    expect(solanaMock.connect).toBeCalledTimes(1)
-    expect(connectResp).toBe(expectedPublicKey)
-    const [{ account, isAuthenticated }] = result.current
-    expect(account).toBe(expectedPublicKey)
-    expect(isAuthenticated).toBe(true)
+    await testConnect()
 })
 
 test('should return null on connection fail', async () => {
     const expectedPublicKey = null
     const solanaMock = setupSolana(true, expectedPublicKey)
-    mockSolana(solanaMock)
-    const { result } = render()
+    const { result } = renderHook(() => usePhantom(solanaMock))
     const [, { connect }] = result.current
-
     let connectResp
     await act(async () => {
         connectResp = await connect()
@@ -83,14 +60,14 @@ test('should return null on connection fail', async () => {
 })
 
 test('should throw if trying to connect when not available', async () => {
-    const [, { connect }] = render().cur
+    const [, { connect }] = render()
     await expect(connect()).rejects.toThrow(
         strings.EXC_MSG_TRYING_TO_CONNECT_WHEN_PROVIDER_NOT_AVAILABLE
     )
 })
 
 test('should throw if trying to sign when not available', async () => {
-    const [, { sign }] = render().cur
+    const [, { sign }] = render()
     await expect(sign('')).rejects.toThrow(
         strings.EXC_MSG_TRYING_TO_SIGN_WHEN_PROVIDER_NOT_AVAILABLE
     )
@@ -100,9 +77,7 @@ test('should sign a message', async () => {
     const solanaMock = setupSolana(true)
     const expectedSignedMsg = 'asdfasdf'
     solanaMock.signMessage = jest.fn(() => Promise.resolve(expectedSignedMsg))
-    mockSolana(solanaMock)
-    const { result } = render()
-    const [, { sign }] = result.current
+    const [, { sign }] = render(solanaMock)
 
     let signedMessage
     await act(async () => {
@@ -112,10 +87,25 @@ test('should sign a message', async () => {
     expect(solanaMock.signMessage).toBeCalledTimes(1)
 })
 
-function mockSolana(mock: any) {
-    // @ts-ignore
-    utils.getProvider.mockImplementation(() => mock)
-}
+test('connect on mobile device web3 browser', async () => {
+    uaGetter.mockReturnValue('iPhone')
+    await testConnect()
+})
+
+// test('open deeplink when connect on mobile device', () => {
+//     uaGetter.mockReturnValue('iPhone')
+//     window.open = jest.fn()
+//     const host = getHost()
+//     const key = getDappEncryptionPublicKey()
+//     const expectedLink = generateLink(key, host)
+//     const [, { connect }] = render()
+//     act(() => {
+//         if (connect) connect()
+//     })
+//     expect(window.open).toBeCalledWith(expectedLink, '_blank')
+// })
+
+test('handle deeplink redirect', () => {})
 
 function setupSolana(isConnected = false, _publicKey: string | null = null) {
     const publicKey: PublicKey | null =
@@ -127,7 +117,7 @@ function setupSolana(isConnected = false, _publicKey: string | null = null) {
                   },
               } as PublicKey)
 
-    const solana: Partial<PhantomProvider> = {
+    const solana: any = {
         connect: jest.fn(
             (
                 opts: Partial<ConnectOpts> | undefined
@@ -148,5 +138,24 @@ function setupSolana(isConnected = false, _publicKey: string | null = null) {
             return Promise.resolve(undefined)
         },
     }
-    return solana
+    return solana as PhantomProvider
+}
+
+// Test connect method
+async function testConnect() {
+    const expectedPublicKey = 'expectedPublicKey'
+    const solanaMock = setupSolana(true, expectedPublicKey)
+    const { result } = renderHook(() => usePhantom(solanaMock))
+    const [, { connect }] = result.current
+
+    let connectResp
+    await act(async () => {
+        connectResp = await connect()
+    })
+
+    expect(solanaMock.connect).toBeCalledTimes(1)
+    expect(connectResp).toBe(expectedPublicKey)
+    const [{ account, isAuthenticated }] = result.current
+    expect(account).toBe(expectedPublicKey)
+    expect(isAuthenticated).toBe(true)
 }
