@@ -40,21 +40,9 @@ function usePhantom(): PureWalletHook {
         isAuthenticated: account !== null,
     }
 
-    const sign = async (msg: string) => {
-        if (provider === undefined) {
-            throw new Error(
-                strings.EXC_MSG_TRYING_TO_SIGN_WHEN_PROVIDER_NOT_AVAILABLE
-            )
-        }
-        const encodedMessage = new TextEncoder().encode(msg)
-        const signedMessage = await provider.signMessage(encodedMessage, 'utf8')
-        // TODO: maybe signature formatting is required
-        return signedMessage
-    }
-
     const actions: PureWalletActions = {
         connect: connect(provider, setAccount),
-        sign,
+        sign: sign(provider),
     }
 
     return [data, actions]
@@ -80,6 +68,20 @@ function connect(
         const account = connectionResp.publicKey?.toString() || null
         set(account)
         return account
+    }
+}
+
+function sign(provider: PhantomProvider | undefined) {
+    return async function handleSign(msg: string) {
+        if (provider === undefined) {
+            throw new Error(
+                strings.EXC_MSG_TRYING_TO_SIGN_WHEN_PROVIDER_NOT_AVAILABLE
+            )
+        }
+        const encodedMessage = new TextEncoder().encode(msg)
+        const signedMessage = await provider.signMessage(encodedMessage, 'utf8')
+        // TODO: maybe signature formatting is required
+        return signedMessage
     }
 }
 
