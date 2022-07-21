@@ -6,6 +6,8 @@ import { getHost, strings } from '../constants'
 import { WalletId } from '../types'
 import { ConnectOpts, DisplayEncoding, PhantomProvider } from './types'
 import usePhantom, { generateLink } from './index'
+import bs58 from 'bs58'
+import base58 from 'bs58'
 
 function render(provider?: PhantomProvider) {
     const {
@@ -107,62 +109,56 @@ test('open deeplink when connect on mobile device', () => {
     expect(window.open).toBeCalledWith(expectedLink, '_blank')
 })
 
-// test('should store dapp encryption key on deeplink connect', () => {
-//     const expectedEncryptionKeys = {
-//         public: '',
-//         secret: '',
-//     }
-//     uaGetter.mockReturnValue('iPhone') // TODO refactor: setMobile()
-//     const [, { connect, getDappEncryptionKeys }] = render()
-//     act(() => {
-//         if (connect) connect()
-//     })
-//     expect(getDappEncryptionKeys).toEqual(expectedEncryptionKeys)
-// })
+test('should store dapp encryption key on deeplink connect', () => {
+    const expectedEncryptionKeys = {
+        public: 'publicKey',
+        secret: 'secret',
+    }
+    window['keyPair'] = expectedEncryptionKeys
+    uaGetter.mockReturnValue('iPhone') // TODO refactor: setMobile()
+    const [, { getDappEncryptionKeys }] = render()
+    expect(getDappEncryptionKeys && getDappEncryptionKeys()).toEqual(
+        expectedEncryptionKeys
+    )
+})
 
-// test('handle deeplink redirect', () => {
-//     const expectedPublicKey = '9aQ9N4VMkJqFh7iYVtrcHp43czJmqeh4cF54fvtiVu8h'
-//     const mySecretKey = bs58.decode(
-//         'HRKLiWmPaFzsRh417svsWbMEDLwZ3g8p6gNUTHvB2FuK'
-//     )
+test('handle deeplink redirect', () => {
+    window['bs58'] = true
+    const expectedEncryptionKeys = {
+        publicKey: base58.decode(
+            '9aQ9N4VMkJqFh7iYVtrcHp43czJmqeh4cF54fvtiVu8h'
+        ),
+        secretKey: base58.decode(
+            'HRKLiWmPaFzsRh417svsWbMEDLwZ3g8p6gNUTHvB2FuK'
+        ),
+    }
+    window['keyPair'] = expectedEncryptionKeys
+    const phantom_encryption_public_key =
+        '6HLZPEZzgUVzZWVYGDWP2TeghNdAsWctMMx363e4TYfc'
+    const nonce = '5HbPnSgBuESTMsgp58FF9EL18RfZAdWsC'
+    const deepLinkData =
+        '6jjJQ8235wpFimNQ3ojwSWvfYX8sN4CgMkR5Q7pJ9tFQgwCiGnd9MPzJf86nSkmBJVhJGhAjSnicL5jc5jy23tjGUcfexESVVVpKCwi4RqxcnGLv1jEnZyfchsSaHamM9ySD4JkwAFxBPwLLGVA3oam68qWT4CfAfm1J781b2Ye12L8XuKcgkAfoRUmwz13g7fPgPS5mviW21D4cqXBe2AAHvHErLZCbLALUH27Hh2zD6vrsMKkz3vy9N726vcAuSJghC1tLmsFeYJRzzsBWkxUnk51rkGKtq3aWef3EiLokRRCCX3bBEYGjNAzLmeTQLaD2iJUQ7t5mKqA2m4MGDViUiEU1F8c8r7mSaZKqYy7nGDdf8NMy6GmHt9aZXzGPkc3zCs11No5meDqVZRTGJMGz4iSBKjT8hYPTk'
+    uaGetter.mockReturnValue('iPhone')
+    const { result } = renderHook(() => usePhantom())
+    let [, { handleDeepLinkConnect }] = result.current
 
-//     // Response data from Phantom deeplink
-//     const deepLinkData = `6jjJQ8235wpFimNQ3ojwSWvfYX8sN4CgMkR5Q7pJ9tFQgwCiGnd9MPzJf86nSkmBJVhJGhAjSnicL5jc5jy23tjGUcfexESVVVpKCwi4RqxcnGLv1jEnZyfchsSaHamM9ySD4JkwAFxBPwLLGVA3oam68qWT4CfAfm1J781b2Ye12L8XuKcgkAfoRUmwz13g7fPgPS5mviW21D4cqXBe2AAHvHErLZCbLALUH27Hh2zD6vrsMKkz3vy9N726vcAuSJghC1tLmsFeYJRzzsBWkxUnk51rkGKtq3aWef3EiLokRRCCX3bBEYGjNAzLmeTQLaD2iJUQ7t5mKqA2m4MGDViUiEU1F8c8r7mSaZKqYy7nGDdf8NMy6GmHt9aZXzGPkc3zCs11No5meDqVZRTGJMGz4iSBKjT8hYPTk`
-//     const box = bs58.decode(deepLinkData)
-//     const nonce = bs58.decode(`5HbPnSgBuESTMsgp58FF9EL18RfZAdWsC`)
-//     const phantom_encryption_public_key = `6HLZPEZzgUVzZWVYGDWP2TeghNdAsWctMMx363e4TYfc`
+    let handlerResult
+    act(() => {
+        handlerResult =
+            handleDeepLinkConnect &&
+            handleDeepLinkConnect({
+                phantom_encryption_public_key,
+                data: deepLinkData,
+                nonce,
+            })
+    })
 
-//     // Open shared box
-//     const sharedSecretDapp = nacl.box.before(
-//         bs58.decode(phantom_encryption_public_key),
-//         mySecretKey
-//     )
-//     const openedBox = nacl.box.open.after(box, nonce, sharedSecretDapp)
-//     const parsed = JSON.parse(
-//         openedBox ? Buffer.from(openedBox).toString('utf8') : ''
-//     )
-//     // {
-//     //     public_key: '9aQ9N4VMkJqFh7iYVtrcHp43czJmqeh4cF54fvtiVu8h',
-//     //     session: '2czzJ91m5n6DNXsryqUSN8TsxU9YUwk46myfhGiwZojcwpQhDuHyeXQwRbDiDciQqH19ojcjtnJqqeg9cPRRo97ZsNwqeVudvTn29u6hCxRA6mc3NsWi4nfXAyrhJzNGJdFiM4hbFiHu6Pk7md5UnD9qeNnjjAzadUgzXCjM5pQgWM3jmBcx3oFPXmKBqo5tLn6fB8z6NZqbAYNA69X5hd8AJ8'
-//     //   }
-
-//     const key = getDappEncryptionPublicKey()
-//     const { result } = renderHook(() => usePhantom())
-//     let [, { handleDeepLinkConnect }] = result.current
-
-//     let handlerResult
-//     act(() => {
-//         handlerResult = handleDeepLinkConnect({
-//             phantom_encryption_public_key,
-//             data: box,
-//             nonce,
-//         })
-//     })
-
-//     expect(handlerResult).toBe(expectedPublicKey)
-//     // hook should connect
-//     expect(result.current[0].account).toBe(expectedPublicKey)
-// })
+    expect(handlerResult).toEqual(expectedEncryptionKeys.publicKey)
+    // hook should connect
+    expect(result.current[0].account).toBe(
+        bs58.encode(expectedEncryptionKeys.publicKey)
+    )
+})
 
 function setupSolana(isConnected = false, _publicKey: string | null = null) {
     // TODO refactor, too complex

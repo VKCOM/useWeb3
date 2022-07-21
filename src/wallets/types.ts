@@ -34,6 +34,17 @@ export type PureWalletActions = {
     sign: (msg: string) => Promise<string>
 }
 
+export type DeeplinkConnectData = {
+    phantom_encryption_public_key: string
+    data: string
+    nonce: string
+}
+
+export interface PhantomActions extends PureWalletActions {
+    getDappEncryptionKeys?: () => nacl.BoxKeyPair
+    handleDeepLinkConnect?: (response: DeeplinkConnectData) => Uint8Array | null
+}
+
 export type WalletHook = [WalletData, WalletActions]
-export type PureWalletHook = [WalletData, PureWalletActions] // TODO: Leave one of them
+export type PureWalletHook = [WalletData, PhantomActions] // TODO: Leave one of them
 export type HookData = WalletHook | PureWalletHook // TODO refactor and remove

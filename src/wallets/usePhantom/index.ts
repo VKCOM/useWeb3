@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import 'fast-text-encoding'
 import { getHost, isMobile, strings } from '../constants'
 import {
-    PureWalletActions,
+    DeeplinkConnectData,
+    PhantomActions,
     PureWalletHook,
     WalletData,
     WalletId,
@@ -44,9 +45,14 @@ function usePhantom(_provider?: PhantomProvider): PureWalletHook {
         isAuthenticated: account !== null,
     }
 
-    const actions: PureWalletActions = {
+    const actions: PhantomActions = {
         connect: connect(provider, isMobile(), keyPair.publicKey, setAccount),
         sign: sign(provider),
+        getDappEncryptionKeys: getDappEncryptionKeys(keyPair),
+        handleDeepLinkConnect: handleDeepLinkConnect(
+            keyPair.secretKey,
+            setAccount
+        ),
     }
 
     return [data, actions]
@@ -65,10 +71,10 @@ function connect(
     set: React.Dispatch<React.SetStateAction<string | null>>
 ) {
     if (isMobile && !provider) {
-        const url = generateLink(bs58.encode(publicKey), getHost())
         // We recommend not to use Phantom deeplinks on web app (due to bad UX)
         // or generate dappEncryptionPublicKey on server (for security reasons)
         return async function openDeepLink() {
+            const url = generateLink(bs58.encode(publicKey), getHost())
             window.open(url, '_blank')
             return url
         }
@@ -121,6 +127,45 @@ export const getProvider = (): PhantomProvider | undefined => {
 
 export function gatherDeeplinkData() {
     // TODO get deeplink data from URL params
+}
+
+function getDappEncryptionKeys(keyPair: nacl.BoxKeyPair) {
+    return function get() {
+        return keyPair
+    }
+}
+
+function handleDeepLinkConnect(
+    secret: Uint8Array,
+    set: React.Dispatch<React.SetStateAction<string | null>>
+) {
+    return function handleResponse(response: DeeplinkConnectData) {
+        const { phantom_encryption_public_key, nonce, data } = response
+        // Open shared box
+        const sharedSecretDapp = nacl.box.before(
+            bs58.decode(phantom_encryption_public_key),
+            secret
+        )
+        const openedBox = nacl.box.open.after(
+            bs58.decode(data),
+            bs58.decode(nonce),
+            sharedSecretDapp
+        )
+        type Parsed = {
+            public_key: string
+            session: string
+        }
+        const parsed: Parsed | null = openedBox
+            ? JSON.parse(Buffer.from(openedBox).toString('utf8'))
+            : null
+
+        if (parsed && parsed.public_key) {
+            set(parsed.public_key)
+            return bs58.decode(parsed.public_key)
+        }
+
+        return null
+    }
 }
 
 export default usePhantom
