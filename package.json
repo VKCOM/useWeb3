@@ -1,7 +1,7 @@
 {
-  "name": "crypto-wallet-link",
-  "version": "1.0.0",
-  "description": "A library that provides a hook for getting access to the crypto wallets",
+  "name": "useWeb3",
+  "version": "1.4",
+  "description": "Set of hooks to work with web3 wallets #tdd #fp",
   "license": "MIT",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
