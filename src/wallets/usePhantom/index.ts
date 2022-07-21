@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import 'fast-text-encoding'
-import { strings } from '../constants'
+import { getHost, isMobile, strings } from '../constants'
 import {
     PureWalletActions,
     PureWalletHook,
@@ -10,6 +10,8 @@ import {
 } from '../types'
 
 import { PhantomCluster, PhantomProvider } from './types'
+import nacl from 'tweetnacl'
+import bs58 from 'bs58'
 
 // TODO connect with deeplinks
 
@@ -20,6 +22,7 @@ import { PhantomCluster, PhantomProvider } from './types'
 // https://phantom.app/ul/browse/https%3A%2F%2Fmagiceden.io%2Fitem-details%2FED8Psf2Zk2HyVGAimSQpFHVDFRGDAkPjQhkfAqbN5h7d?ref=https%3A%2F%2Fmagiceden.io
 
 function usePhantom(_provider?: PhantomProvider): PureWalletHook {
+    const [keyPair] = useState(generateDappEncryption())
     const [provider, setProvider] = useState<PhantomProvider | undefined>(
         _provider
     )
@@ -42,7 +45,7 @@ function usePhantom(_provider?: PhantomProvider): PureWalletHook {
     }
 
     const actions: PureWalletActions = {
-        connect: connect(false, provider, setAccount),
+        connect: connect(provider, isMobile(), keyPair.publicKey, setAccount),
         sign: sign(provider),
     }
 
@@ -56,12 +59,19 @@ interface Params {
 }
 
 function connect(
-    isMobile: boolean,
     provider: PhantomProvider | undefined,
+    isMobile: boolean,
+    publicKey: Uint8Array,
     set: React.Dispatch<React.SetStateAction<string | null>>
 ) {
     if (isMobile && !provider) {
-        // return
+        const url = generateLink(bs58.encode(publicKey), getHost())
+        // We recommend not to use Phantom deeplinks on web app (due to bad UX)
+        // or generate dappEncryptionPublicKey on server (for security reasons)
+        return async function openDeepLink() {
+            window.open(url, '_blank')
+            return url
+        }
     }
 
     return async function handleConnect(params?: Params) {
@@ -91,19 +101,26 @@ function sign(provider: PhantomProvider | undefined) {
     }
 }
 
-export function getDappEncryptionPublicKey() {
-    return 'key'
+export function generateDappEncryption() {
+    return nacl.box.keyPair()
 }
 
 export function generateLink(public_key: string, host: string) {
-    // const params = new URLSearchParams({
-    //     dapp_encryption_public_key:
-    // })
-    // return `https://phantom.app/ul/v1/connect?=9KZNkyGGHSbna3G9YZ4mrZaaZHp9a8zLtEoKfiK5pd4k&app_url=https%3A%2F%2Fya.ru&cluster=mainnet-beta&redirect_link=https%3A%2F%2Fya.ru`
+    const params = new URLSearchParams({
+        dapp_encryption_public_key: public_key,
+        redirect_url: host,
+        app_url: host,
+        // TODO support cluster
+    })
+    return `https://phantom.app/ul/v1/connect?${params.toString()}`
 }
 
 export const getProvider = (): PhantomProvider | undefined => {
     return window.solana
+}
+
+export function gatherDeeplinkData() {
+    // TODO get deeplink data from URL params
 }
 
 export default usePhantom

@@ -4,9 +4,8 @@ import { act } from '@testing-library/react-hooks'
 
 import { getHost, strings } from '../constants'
 import { WalletId } from '../types'
-
 import { ConnectOpts, DisplayEncoding, PhantomProvider } from './types'
-import usePhantom, { generateLink, getDappEncryptionPublicKey } from './index'
+import usePhantom, { generateLink } from './index'
 
 function render(provider?: PhantomProvider) {
     const {
@@ -92,22 +91,81 @@ test('connect on mobile device web3 browser', async () => {
     await testConnect()
 })
 
-// test('open deeplink when connect on mobile device', () => {
-//     uaGetter.mockReturnValue('iPhone')
-//     window.open = jest.fn()
-//     const host = getHost()
-//     const key = getDappEncryptionPublicKey()
-//     const expectedLink = generateLink(key, host)
-//     const [, { connect }] = render()
+test('open deeplink when connect on mobile device', () => {
+    const expectedEncryptionKeys = {
+        publicKey: 'public dapp key',
+    }
+    window['keyPair'] = expectedEncryptionKeys
+    uaGetter.mockReturnValue('iPhone')
+    window.open = jest.fn()
+    const host = getHost()
+    const expectedLink = generateLink(expectedEncryptionKeys.publicKey, host)
+    const [, { connect }] = render()
+    act(() => {
+        if (connect) connect()
+    })
+    expect(window.open).toBeCalledWith(expectedLink, '_blank')
+})
+
+// test('should store dapp encryption key on deeplink connect', () => {
+//     const expectedEncryptionKeys = {
+//         public: '',
+//         secret: '',
+//     }
+//     uaGetter.mockReturnValue('iPhone') // TODO refactor: setMobile()
+//     const [, { connect, getDappEncryptionKeys }] = render()
 //     act(() => {
 //         if (connect) connect()
 //     })
-//     expect(window.open).toBeCalledWith(expectedLink, '_blank')
+//     expect(getDappEncryptionKeys).toEqual(expectedEncryptionKeys)
 // })
 
-test('handle deeplink redirect', () => {})
+// test('handle deeplink redirect', () => {
+//     const expectedPublicKey = '9aQ9N4VMkJqFh7iYVtrcHp43czJmqeh4cF54fvtiVu8h'
+//     const mySecretKey = bs58.decode(
+//         'HRKLiWmPaFzsRh417svsWbMEDLwZ3g8p6gNUTHvB2FuK'
+//     )
+
+//     // Response data from Phantom deeplink
+//     const deepLinkData = `6jjJQ8235wpFimNQ3ojwSWvfYX8sN4CgMkR5Q7pJ9tFQgwCiGnd9MPzJf86nSkmBJVhJGhAjSnicL5jc5jy23tjGUcfexESVVVpKCwi4RqxcnGLv1jEnZyfchsSaHamM9ySD4JkwAFxBPwLLGVA3oam68qWT4CfAfm1J781b2Ye12L8XuKcgkAfoRUmwz13g7fPgPS5mviW21D4cqXBe2AAHvHErLZCbLALUH27Hh2zD6vrsMKkz3vy9N726vcAuSJghC1tLmsFeYJRzzsBWkxUnk51rkGKtq3aWef3EiLokRRCCX3bBEYGjNAzLmeTQLaD2iJUQ7t5mKqA2m4MGDViUiEU1F8c8r7mSaZKqYy7nGDdf8NMy6GmHt9aZXzGPkc3zCs11No5meDqVZRTGJMGz4iSBKjT8hYPTk`
+//     const box = bs58.decode(deepLinkData)
+//     const nonce = bs58.decode(`5HbPnSgBuESTMsgp58FF9EL18RfZAdWsC`)
+//     const phantom_encryption_public_key = `6HLZPEZzgUVzZWVYGDWP2TeghNdAsWctMMx363e4TYfc`
+
+//     // Open shared box
+//     const sharedSecretDapp = nacl.box.before(
+//         bs58.decode(phantom_encryption_public_key),
+//         mySecretKey
+//     )
+//     const openedBox = nacl.box.open.after(box, nonce, sharedSecretDapp)
+//     const parsed = JSON.parse(
+//         openedBox ? Buffer.from(openedBox).toString('utf8') : ''
+//     )
+//     // {
+//     //     public_key: '9aQ9N4VMkJqFh7iYVtrcHp43czJmqeh4cF54fvtiVu8h',
+//     //     session: '2czzJ91m5n6DNXsryqUSN8TsxU9YUwk46myfhGiwZojcwpQhDuHyeXQwRbDiDciQqH19ojcjtnJqqeg9cPRRo97ZsNwqeVudvTn29u6hCxRA6mc3NsWi4nfXAyrhJzNGJdFiM4hbFiHu6Pk7md5UnD9qeNnjjAzadUgzXCjM5pQgWM3jmBcx3oFPXmKBqo5tLn6fB8z6NZqbAYNA69X5hd8AJ8'
+//     //   }
+
+//     const key = getDappEncryptionPublicKey()
+//     const { result } = renderHook(() => usePhantom())
+//     let [, { handleDeepLinkConnect }] = result.current
+
+//     let handlerResult
+//     act(() => {
+//         handlerResult = handleDeepLinkConnect({
+//             phantom_encryption_public_key,
+//             data: box,
+//             nonce,
+//         })
+//     })
+
+//     expect(handlerResult).toBe(expectedPublicKey)
+//     // hook should connect
+//     expect(result.current[0].account).toBe(expectedPublicKey)
+// })
 
 function setupSolana(isConnected = false, _publicKey: string | null = null) {
+    // TODO refactor, too complex
     const publicKey: PublicKey | null =
         _publicKey === null
             ? null
