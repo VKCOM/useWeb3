@@ -8,6 +8,7 @@ updates:
       - dependency-type: "direct"
     reviewers:
       - "VKCOM/vk-sec"
+      - "VKCOM/nft"
   - package-ecosystem: "github-actions"
     # Workflow files stored in the
     # default location of `.github/workflows`
@@ -16,3 +17,4 @@ updates:
       interval: "daily"
     reviewers:
       - "VKCOM/vk-sec"
+      - "VKCOM/nft"
