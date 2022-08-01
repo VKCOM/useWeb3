@@ -17,6 +17,7 @@ test('sort hooks data by isAvailable method', () => {
         account: null,
         isAvailable,
         isAuthenticated: false,
+        chainId: null,
     })
     const data: HookData[] = [
         [getData(WalletId.Metamask), actions],
