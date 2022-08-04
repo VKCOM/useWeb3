@@ -1,0 +1,10 @@
+import 'fast-text-encoding';
+import { PureWalletHook } from '../types';
+import { PhantomProvider } from './types';
+import nacl from 'tweetnacl';
+declare function usePhantom(_provider?: PhantomProvider): PureWalletHook;
+export declare function generateDappEncryption(): nacl.BoxKeyPair;
+export declare function generateLink(public_key: string, host: string): string;
+export declare const getProvider: () => PhantomProvider | undefined;
+export declare function gatherDeeplinkData(): void;
+export default usePhantom;
